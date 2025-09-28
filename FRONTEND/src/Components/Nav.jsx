@@ -29,7 +29,7 @@
            >
            </IconButton>
            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-             myApp
+             CHANGING LIVES
            </Typography>
            <Button >
              <Link to={'/h'} style={{textDecoration:'none', color:'white'}}>
@@ -42,7 +42,7 @@
              </Link>
           </Button>
           <Button >
-             <Link to={'/aboutus'} style={{textDecoration:'none', color:'white'}}>
+             <Link to={'/about'} style={{textDecoration:'none', color:'white'}}>
              About us
              </Link>
           </Button>

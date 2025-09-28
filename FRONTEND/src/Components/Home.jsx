@@ -106,12 +106,12 @@ export default function Home() {
           <Typography variant="h4" textAlign="center" gutterBottom>
             Stories of Impact
           </Typography>
-          <Box
+          <Box 
             sx={{
               bgcolor: "#22c55e",
               color: "white",
               p: 3,
-              borderRadius: 2,
+              borderRadius: 2,n
               textAlign: "center",
               mb: 5,
             }}
@@ -171,13 +171,20 @@ export default function Home() {
           futures.
         </Typography>
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-          <Button
+          <Button component={Link}
+          to="/about" 
             variant="contained"
-            sx={{ bgcolor: "#22c55e", "&:hover": { bgcolor: "#16a34a" } }}
+            sx={{ bgcolor: "#22c58fff", "&:hover": { bgcolor: "#16a34a" } }}
           >
-            Support Now
+            ABOUT US
           </Button>
-          <Button variant="outlined">Contact Us</Button>
+          <Button component={Link}
+          to="/c" 
+           variant="outlined">Contact Us
+            <Link to={'/c'} style={{textDecoration:'none', color:'white'}}>
+                         Contacts 
+                         </Link> 
+          </Button>
         </Box>
       </Container>
 
