@@ -20,7 +20,7 @@ const Signup = () => {
     // Note: Corrected var to const
     const [input, setInput] = useState({});
     const baseurl = import.meta.env.VITE_API_BASE_URL;
-    const navigate = useNavigate(); // Corrected capitalization from 'Navigate' to 'navigate'
+    const navigate = useNavigate(); // Corrected capitalization from 'Navigate' to 'navigate'nn
 
     const inputHandler = (e) => {
         // console.log(e.target.value); // Keep console logs clean for production
