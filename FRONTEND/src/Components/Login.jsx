@@ -172,7 +172,7 @@ const Login = () => {
           textDecoration: 'none' 
         }}
       >
-        signup
+        Signup
       </Link>
     </Typography>
 

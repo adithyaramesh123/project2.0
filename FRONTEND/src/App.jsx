@@ -9,7 +9,7 @@ import Login from './Components/Login'
 import Contactt from './Components/Contactt'
 import Nav from './Components/Nav'
 import Home from './Components/Home'
-
+import Admindash from './Admindash'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -22,6 +22,7 @@ function App() {
         <Route path='/c' element={<Contactt/>}/>
         <Route path='/n' element={<Nav/>}/>
         <Route path='/' element={<Home/>}/>
+        <Route path='/a' element={<Admindash/>}/>
       </Routes>
     </>
   )
