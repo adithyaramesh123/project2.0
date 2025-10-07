@@ -9,6 +9,7 @@ import Login from './Components/Login'
 import Contactt from './Components/Contactt'
 import Nav from './Components/Nav'
 import Home from './Components/Home'
+import About from './Components/About'
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path='/c' element={<Contactt/>}/>
         <Route path='/n' element={<Nav/>}/>
         <Route path='/' element={<Home/>}/>
+        <Route path='/about' element={<About/>}/>
       </Routes>
     </>
   )

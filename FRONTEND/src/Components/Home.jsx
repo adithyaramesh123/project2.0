@@ -61,7 +61,7 @@ export default function Home() {
             >
               Donate
             </Button>
-            <Button
+            <Button 
               variant="outlined"
               sx={{ color: "white", borderColor: "white" }}
             >
@@ -111,7 +111,7 @@ export default function Home() {
               bgcolor: "#22c55e",
               color: "white",
               p: 3,
-              borderRadius: 2,n
+              borderRadius: 2,
               textAlign: "center",
               mb: 5,
             }}
