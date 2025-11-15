@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,14 @@ import {
 } from "@mui/material";
 
 export default function Home() {
+  // Smooth scroll function
+  const scrollToSection = (id) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <>
       {/* Navbar */}
@@ -24,11 +32,18 @@ export default function Home() {
               Changing Lives
             </Typography>
             <Box sx={{ display: "flex", gap: 3 }}>
-              <Button color="inherit">Our Mission</Button>
-              <Button color="inherit">Impact</Button>
-              <Button color="inherit">Solutions</Button>
-              <Button color="inherit">Get Involved</Button>
-             
+              <Button color="inherit" onClick={() => scrollToSection("mission")}>
+                Our Mission
+              </Button>
+              <Button color="inherit" onClick={() => scrollToSection("impact")}>
+                Impact
+              </Button>
+              <Button color="inherit" onClick={() => scrollToSection("solutions")}>
+                Solutions
+              </Button>
+              <Button color="inherit" onClick={() => scrollToSection("get-involved")}>
+                Get Involved
+              </Button>
             </Box>
           </Toolbar>
         </Container>
@@ -49,8 +64,8 @@ export default function Home() {
           </Typography>
           <Typography variant="h6" sx={{ mb: 4 }}>
             A dedicated charity initiative by <b>Changing lives</b>, committed
-            to delivering [clean water | education | food | healthcare |
-            shelter] and essential support to people.
+            to delivering clean water, education, food, healthcare, and shelter
+            to those in need.
           </Typography>
           <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
             <Button
@@ -61,7 +76,8 @@ export default function Home() {
             >
               Donate
             </Button>
-            <Button 
+            <Button
+              onClick={() => scrollToSection("get-involved")}
               variant="outlined"
               sx={{ color: "white", borderColor: "white" }}
             >
@@ -72,7 +88,7 @@ export default function Home() {
       </Box>
 
       {/* Mission Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container id="mission" maxWidth="lg" sx={{ py: 8 }}>
         <Typography variant="h4" textAlign="center" gutterBottom>
           Our Mission
         </Typography>
@@ -101,12 +117,12 @@ export default function Home() {
       </Container>
 
       {/* Stories of Impact */}
-      <Box sx={{ bgcolor: "#f9fafb", py: 8 }}>
+      <Box id="impact" sx={{ bgcolor: "#f9fafb", py: 8 }}>
         <Container maxWidth="lg">
           <Typography variant="h4" textAlign="center" gutterBottom>
             Stories of Impact
           </Typography>
-          <Box 
+          <Box
             sx={{
               bgcolor: "#22c55e",
               color: "white",
@@ -117,12 +133,12 @@ export default function Home() {
             }}
           >
             <Typography variant="body1" fontStyle="italic">
-              "Because of [Organization], my children now have clean water to
+              "Because of Changing Lives, my children now have clean water to
               drink every day. We are healthier and more hopeful than ever
               before."
             </Typography>
             <Typography variant="body2" sx={{ mt: 1 }}>
-              — [Beneficiary Name], [Community / Location]
+              — Beneficiary, Local Community
             </Typography>
           </Box>
 
@@ -161,7 +177,7 @@ export default function Home() {
       </Box>
 
       {/* Get Involved Section */}
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+      <Container id="get-involved" maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
         <Typography variant="h4" gutterBottom>
           Get Involved
         </Typography>
@@ -171,19 +187,21 @@ export default function Home() {
           futures.
         </Typography>
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-          <Button component={Link}
-          to="/about" 
+          <Button
+            component={Link}
+            to="/about"
             variant="contained"
-            sx={{ bgcolor: "#22c58fff", "&:hover": { bgcolor: "#16a34a" } }}
+            sx={{ bgcolor: "#22c55e", "&:hover": { bgcolor: "#16a34a" } }}
           >
             ABOUT US
           </Button>
-          <Button component={Link}
-          to="/c" 
-           variant="outlined">Contact Us
-            <Link to={'/c'} style={{textDecoration:'none', color:'white'}}>
-                         Contacts 
-                         </Link> 
+          <Button
+            component={Link}
+            to="/c"
+            variant="outlined"
+            sx={{ color: "#0a2a4d", borderColor: "#0a2a4d" }}
+          >
+            Contact Us
           </Button>
         </Box>
       </Container>
@@ -194,7 +212,7 @@ export default function Home() {
           <Grid container spacing={4}>
             <Grid item xs={12} md={3}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                Changing lives
+                Changing Lives
               </Typography>
               <Typography>
                 Transforming lives by giving hope, dignity, and opportunity.
@@ -227,11 +245,10 @@ export default function Home() {
             </Grid>
           </Grid>
           <Typography variant="body2" textAlign="center" sx={{ mt: 5 }}>
-            © 2025 Changing lives. All rights reserved.
+            © 2025 Changing Lives. All rights reserved.
           </Typography>
         </Container>
       </Box>
-    </>
+    </>//test
   );
 }
-//test
