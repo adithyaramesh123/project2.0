@@ -11,11 +11,8 @@ import Nav from './Components/Nav'
 import Home from './Components/Home'
 import About from './Components/About'
 import Admindash from './Components/Admindash'
-<<<<<<< HEAD
-import Adminlogin from './Components/Adminlogin'
 
-=======
->>>>>>> 8497837611dcd5150236094ebcd8b157da1d1040
+import Adminlogin from './Components/Adminlogin'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -28,16 +25,16 @@ function App() {
         <Route path='/c' element={<Contactt/>}/>
         <Route path='/n' element={<Nav/>}/>
         <Route path='/' element={<Home/>}/>
-<<<<<<< HEAD
+
         {/* <Route path='/g' element={<GetInvolved/>}/> */}
         <Route path='/about' element={<About/>}/>
         <Route path='/a' element={<Admindash/>}/>
         <Route path='/al' element={<Adminlogin/>}/>
 
-=======
+
   <Route path='/about' element={<About/>}/>
   <Route path='/a' element={<Admindash/>}/>
->>>>>>> 8497837611dcd5150236094ebcd8b157da1d1040
+
       </Routes>
     </>
   )
