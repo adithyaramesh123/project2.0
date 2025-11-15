@@ -13,7 +13,7 @@ import About from './Components/About'
 import Admindash from './Components/Admindash'
 
 import Adminlogin from './Components/Adminlogin'
-
+import Donation  from './Components/Donation' 
 function App() {
   const [count, setCount] = useState(0)
 
@@ -34,6 +34,7 @@ function App() {
 
   <Route path='/about' element={<About/>}/>
   <Route path='/a' element={<Admindash/>}/>
+  <Route path='/donate' element={<Donation/>}/>
 
       </Routes>
     </>
