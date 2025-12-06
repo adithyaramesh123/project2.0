@@ -1,9 +1,10 @@
-var mongoose=require('mongoose');
-var adminschema =mongoose.Schema({
-    aemail:String,
-    apassword:String,
-    aforgot:String
-    
-})
-var aModel=mongoose.model("admin",adminschema);
-module.exports=aModel;
+const mongoose = require('mongoose');
+
+const adminschema = new mongoose.Schema({
+    aemail: String,
+    apassword: String,
+    aforgot: String
+});
+
+module.exports =
+    mongoose.models.admin || mongoose.model("admin", adminschema);
