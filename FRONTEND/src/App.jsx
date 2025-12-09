@@ -14,6 +14,8 @@ import Admindash from './Components/Admindash'
 
 import Adminlogin from './Components/Adminlogin'
 import Donation  from './Components/Donation' 
+import DonationPage from './Components/DonationPage'
+import AdminItemsPage from './Components/AdminItemsPage'
 function App() {
   const [count, setCount] = useState(0)
 
@@ -33,8 +35,10 @@ function App() {
 
 
   <Route path='/about' element={<About/>}/>
-  <Route path='/a' element={<Admindash/>}/>
+  <Route path='/admin' element={<Admindash/>}/>
   <Route path='/donate' element={<Donation/>}/>
+  <Route path="/donate1" element={<DonationPage />} />
+  <Route path="/admin/items" element={<AdminItemsPage />} />
 
       </Routes>
     </>
