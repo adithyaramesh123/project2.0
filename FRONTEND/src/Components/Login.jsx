@@ -33,7 +33,7 @@ const Login = () => {
           if (res.data.user.role === "admin") {
             navigate("/admin");
           } else {
-            navigate("/donate");
+            navigate("/donate1");
           }
         }
       })
