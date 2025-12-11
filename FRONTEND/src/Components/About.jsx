@@ -201,7 +201,7 @@ Join Change In Lives—and become the hope someone is praying for.
                         </a>
 
                         <p style={styles.footerNote}>
-                            Being the change you wish to see in the world.
+                            Being the change you wish to see in the world!.
                             </p>
                     </div>
 
