@@ -31,9 +31,9 @@ const Login = () => {
           alert(res.data.message); // ✅ only once
 
           if (res.data.user.role === "admin") {
-            navigate("/a");
+            navigate("/admin");
           } else {
-            navigate("/donate");
+            navigate("/donate1");
           }
         }
       })
