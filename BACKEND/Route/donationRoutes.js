@@ -17,8 +17,17 @@ function getStripe() {
 
 /* ---------------- Models ---------------- */
 const Donation = require("../model/donations");
+// Simple middleware to protect admin routes (similar to adminRoutes.js)
+const adminAuth = (req, res, next) => {
+  const token = req.header('Authorization');
+  if (!token) return res.status(401).json({ error: 'Access denied' });
+  next();
+};
+const mongoose = require('mongoose');
+const Organization = require('../model/Organization');
+const OrganizationRequest = require('../model/OrganizationRequest');
 const NeededItem = require("../model/neededItems");
-const User = require("../model/User"); // If you have user model
+const User = require("../model/User");
 
 /* ============================================================
    1️⃣ MONEY DONATION (Stripe)
@@ -34,20 +43,17 @@ router.post("/money", async (req, res) => {
     if (!amount || amount <= 0)
       return res.status(400).json({ error: "Invalid amount" });
 
-    // Create payment intent
     const paymentIntent = await stripeInstance.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: "usd",
       metadata: { userId },
     });
 
-    // Confirm payment
     const confirmedPayment = await stripeInstance.paymentIntents.confirm(
       paymentIntent.id,
       { payment_method: stripeToken }
     );
 
-    // Save donation
     const donation = new Donation({
       userId,
       type: "Money",
@@ -97,7 +103,7 @@ router.post("/item", async (req, res) => {
 /* ============================================================
    3️⃣ GET NEEDED ITEMS FOR DONATION PAGE
 ============================================================ */
-router.get("/items", async (req, res) => {
+router.get("/items", async (_req, res) => {
   try {
     const items = await NeededItem.find({}).sort({ createdAt: -1 });
     res.json(items);
@@ -110,7 +116,7 @@ router.get("/items", async (req, res) => {
 /* ============================================================
    4️⃣ ADMIN — GET ALL NEEDED ITEMS
 ============================================================ */
-router.get("/admin/items", async (req, res) => {
+router.get("/admin/items", async (_req, res) => {
   try {
     const items = await NeededItem.find({}).sort({ createdAt: -1 });
     res.json(items.filter((i) => i && i._id));
@@ -182,7 +188,7 @@ router.get("/history/:userId", async (req, res) => {
 /* ============================================================
    9️⃣ ADMIN — ALL DONATIONS (Money + Items)
 ============================================================ */
-router.get("/admin/donations", async (req, res) => {
+router.get("/admin/donations", async (_req, res) => {
   try {
     const all = await Donation.find({}).sort({ createdAt: -1 });
     res.json(all);
@@ -195,9 +201,7 @@ router.get("/admin/donations", async (req, res) => {
 /* ============================================================
    🔟 ADMIN — DASHBOARD ANALYTICS
 ============================================================ */
-
-/* ⭐ Summary stats */
-router.get("/admin/stats", async (req, res) => {
+router.get("/admin/stats", async (_req, res) => {
   try {
     const users = await User.countDocuments();
     const donations = await Donation.find({});
@@ -225,8 +229,7 @@ router.get("/admin/stats", async (req, res) => {
   }
 });
 
-/* ⭐ Monthly money chart */
-router.get("/admin/analytics/money", async (req, res) => {
+router.get("/admin/analytics/money", async (_req, res) => {
   try {
     const result = await Donation.aggregate([
       { $match: { type: "Money" } },
@@ -245,8 +248,7 @@ router.get("/admin/analytics/money", async (req, res) => {
   }
 });
 
-/* ⭐ Item category chart */
-router.get("/admin/analytics/items", async (req, res) => {
+router.get("/admin/analytics/items", async (_req, res) => {
   try {
     const result = await Donation.aggregate([
       { $match: { type: "Item" } },
@@ -266,8 +268,7 @@ router.get("/admin/analytics/items", async (req, res) => {
   }
 });
 
-/* ⭐ Recent donations */
-router.get("/admin/recent-donations", async (req, res) => {
+router.get("/admin/recent-donations", async (_req, res) => {
   try {
     const recent = await Donation.find({})
       .sort({ createdAt: -1 })
@@ -276,6 +277,113 @@ router.get("/admin/recent-donations", async (req, res) => {
     res.json(recent);
   } catch (error) {
     res.status(500).json({ error: "Failed recent donations" });
+  }
+});
+
+/* ============================================================
+   1️⃣2️⃣ ADMIN — UNASSIGNED ITEM DONATIONS
+   Returns item donations that are approved but not yet assigned
+============================================================ */
+router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
+  try {
+    const unassigned = await Donation.find({ type: 'Item', status: 'Approved', organization: null }).sort({ createdAt: -1 });
+    res.json(unassigned);
+  } catch (err) {
+    console.error('Unassigned items fetch error', err);
+    res.status(500).json({ error: 'Failed to fetch unassigned items' });
+  }
+});
+
+// Organization endpoints for wanted-items and assigned pickups
+// POST /api/wanted-items - organization creates a request for an item
+router.post('/wanted-items', async (req, res) => {
+  try {
+    const { organizationId, itemName, quantity } = req.body;
+    if (!organizationId || !itemName) return res.status(400).json({ error: 'organizationId and itemName required' });
+    if (!mongoose.Types.ObjectId.isValid(organizationId)) return res.status(400).json({ error: 'Invalid organizationId' });
+
+    const org = await Organization.findById(organizationId);
+    if (!org) return res.status(404).json({ error: 'Organization not found' });
+
+    const newReq = await OrganizationRequest.create({
+      organizationId,
+      items: [{ name: itemName, quantity: quantity || 1 }],
+    });
+
+    res.json({ success: true, request: newReq });
+  } catch (err) {
+    console.error('Create wanted-item request error', err);
+    res.status(500).json({ error: 'Failed to create request' });
+  }
+});
+
+// GET /api/wanted-items?organizationId=... - list requests for an organization
+router.get('/wanted-items', async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    if (!organizationId) return res.status(400).json({ error: 'organizationId query param required' });
+    if (!mongoose.Types.ObjectId.isValid(organizationId)) return res.status(400).json({ error: 'Invalid organizationId' });
+    const list = await OrganizationRequest.find({ organizationId }).sort({ createdAt: -1 }).populate('assignedDonationId');
+    res.json(list);
+  } catch (err) {
+    console.error('Fetch wanted-items error', err);
+    res.status(500).json({ error: 'Failed to fetch wanted items' });
+  }
+});
+
+// GET /api/assigned-pickups?organizationId=... - list assigned pickups for an organization
+router.get('/assigned-pickups', async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    if (!organizationId) return res.status(400).json({ error: 'organizationId query param required' });
+    if (!mongoose.Types.ObjectId.isValid(organizationId)) return res.status(400).json({ error: 'Invalid organizationId' });
+    const list = await OrganizationRequest.find({ organizationId, assignedDonationId: { $ne: null } }).populate({ path: 'assignedDonationId', select: '-__v', populate: { path: 'userId', select: 'ename' } });
+
+    // Map to include donorName for convenience
+    const mapped = list.map(r => {
+      const donation = r.assignedDonationId;
+      const donorName = donation && donation.userId ? donation.userId.ename || donation.userId : null;
+      return {
+        id: r._id,
+        requestId: r._id,
+        items: r.items,
+        status: r.status,
+        assignedDonation: donation,
+        donorName,
+        createdAt: r.createdAt,
+      };
+    });
+    res.json(mapped);
+  } catch (err) {
+    console.error('Fetch assigned pickups error', err);
+    res.status(500).json({ error: 'Failed to fetch assigned pickups' });
+  }
+});
+
+/* ============================================================
+   1️⃣3️⃣ ADMIN — ASSIGN ITEM DONATION TO ORGANIZATION
+   Sets the donation.organization and updates status to 'Assigned'
+============================================================ */
+router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
+  try {
+    const { organizationId } = req.body;
+    if (!organizationId) return res.status(400).json({ error: 'organizationId is required' });
+
+    const org = await Organization.findById(organizationId);
+    if (!org) return res.status(404).json({ error: 'Organization not found' });
+
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    if (donation.type !== 'Item') return res.status(400).json({ error: 'Only item donations can be assigned' });
+    if (donation.status !== 'Approved') return res.status(400).json({ error: 'Donation must be Approved to assign' });
+
+    const updated = await Donation.findByIdAndUpdate(req.params.id, { organization: organizationId, status: 'Assigned' }, { new: true });
+    if (!updated) return res.status(404).json({ error: 'Donation not found' });
+
+    res.json({ success: true, donation: updated });
+  } catch (err) {
+    console.error('Assign donation error', err);
+    res.status(500).json({ error: 'Failed to assign donation' });
   }
 });
 
@@ -302,7 +410,4 @@ router.put("/admin/reject/:id", async (req, res) => {
   }
 });
 
-/* ============================================================
-   EXPORT ROUTER
-============================================================ */
 module.exports = router;

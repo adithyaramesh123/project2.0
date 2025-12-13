@@ -57,6 +57,11 @@
              SignUp
              </Link>
           </Button>
+         <Button >
+           <Link to={'/org/login'} style={{textDecoration:'none', color:'white'}}>
+           Organization Login
+           </Link>
+         </Button>
          </Toolbar>
        </AppBar>
      </Box>

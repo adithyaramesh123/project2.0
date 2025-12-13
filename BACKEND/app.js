@@ -111,6 +111,10 @@ const donationRoute = require("./Route/donationRoutes");
 // ⚠️ Only ONE mount — this is correct
 app.use("/api/donations", donationRoute);
 
+// Organization public routes (login)
+const organizationRoute = require('./Route/organizationRoutes');
+app.use('/api/organizations', organizationRoute);
+
 app.listen(port, () => {
   console.log(`Server is up and Running ${port}`);
 });

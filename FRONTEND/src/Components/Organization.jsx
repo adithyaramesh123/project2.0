@@ -1,347 +1,199 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+    Box,
+    Container,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    TextField,
+    Button,
+    Avatar,
+    Chip,
+    List,
+    ListItem,
+    Divider,
+    CircularProgress,
+    Snackbar,
+    Alert
+} from '@mui/material';
 
-// /C:/FSD/project2.0/FRONTEND/src/Components/Organization.jsx
+const Organization = () => {
+    const [wantedItems, setWantedItems] = useState([]);
+    const [assignedPickups, setAssignedPickups] = useState([]);
+    const [itemName, setItemName] = useState('');
+    const [quantity, setQuantity] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [submitting, setSubmitting] = useState(false);
 
-/**
- * Organization.jsx
- * Simple admin UI to manage organizations and "share" donations with them.
- * - List organizations
- * - Add / Edit / Remove organizations
- * - Share donation (amount) to an organization
- * - Shows donation history
- *
- * This component is intentionally self-contained and uses localStorage
- * so it works in an empty project without an API. Replace storage calls
- * with real API requests when ready.
- */
 
-const STORAGE_KEYS = {
-    ORGS: "orgs_v1",
-    HISTORY: "donation_history_v1",
-};
+    const orgId = localStorage.getItem('orgId');
+    const orgName = localStorage.getItem('orgName') || '';
+    const orgEmail = localStorage.getItem('orgEmail') || '';
 
-const sampleOrgs = [
-    { id: "org-1", name: "Hope Foundation", description: "Food & shelter", received: 1200 },
-    { id: "org-2", name: "Green Hands", description: "Environmental projects", received: 560 },
-];
-
-function uid(prefix = "id") {
-    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-export default function Organization() {
-    const [orgs, setOrgs] = useState([]);
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    // Forms
-    const [form, setForm] = useState({ name: "", description: "" });
-    const [editingId, setEditingId] = useState(null);
-
-    const [share, setShare] = useState({ orgId: "", amount: "" });
-    const [error, setError] = useState("");
-
-    // Load from localStorage or seed sample data
     useEffect(() => {
-        const rawOrgs = localStorage.getItem(STORAGE_KEYS.ORGS);
-        const rawHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+        fetchWantedItems();
+        fetchAssignedPickups();
+    }, [orgId]);
 
-        if (rawOrgs) {
-            try {
-                setOrgs(JSON.parse(rawOrgs));
-            } catch {
-                setOrgs(sampleOrgs);
+    const fetchWantedItems = async () => {
+        try {
+            if (!orgId) {
+                setWantedItems([]);
+                return;
             }
-        } else {
-            setOrgs(sampleOrgs);
-            localStorage.setItem(STORAGE_KEYS.ORGS, JSON.stringify(sampleOrgs));
+            const response = await axios.get(`/api/donations/wanted-items?organizationId=${orgId}`);
+            setWantedItems(response.data);
+        } catch (error) {
+            console.error('Error fetching wanted items:', error);
+            setSnackbar({ open: true, message: 'Failed to load requested items', severity: 'error' });
         }
+    };
 
-        if (rawHistory) {
-            try {
-                setHistory(JSON.parse(rawHistory));
-            } catch {
-                setHistory([]);
+    const fetchAssignedPickups = async () => {
+        try {
+            if (!orgId) {
+                setAssignedPickups([]);
+                return;
             }
-        } else {
-            setHistory([]);
-            localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify([]));
+            const response = await axios.get(`/api/donations/assigned-pickups?organizationId=${orgId}`);
+            setAssignedPickups(response.data);
+        } catch (error) {
+            console.error('Error fetching assigned pickups:', error);
+            setSnackbar({ open: true, message: 'Failed to load assigned pickups', severity: 'error' });
         }
+    };
 
-        setLoading(false);
-    }, []);
-
-    // Persist orgs/history on change
-    useEffect(() => {
-        if (!loading) localStorage.setItem(STORAGE_KEYS.ORGS, JSON.stringify(orgs));
-    }, [orgs, loading]);
-
-    useEffect(() => {
-        if (!loading) localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
-    }, [history, loading]);
-
-    // CRUD: Add/Update org
-    function handleAddOrUpdateOrg(e) {
+    const handleRequestItem = async (e) => {
         e.preventDefault();
-        setError("");
-        const name = form.name.trim();
-        const description = form.description.trim();
+        if (!itemName.trim() || !quantity) return;
 
-        if (!name) {
-            setError("Organization name is required.");
-            return;
+        setLoading(true);
+        setSubmitting(true);
+        try {
+            if (!orgId) {
+                setSnackbar({ open: true, message: 'Organization ID is missing. Please log in as organization.', severity: 'warning' });
+                return;
+            }
+            await axios.post('/api/donations/wanted-items', {
+                itemName,
+                quantity,
+                organizationId: orgId,
+            });
+            setItemName('');
+            setQuantity('');
+            fetchWantedItems();
+            setSnackbar({ open: true, message: 'Request created', severity: 'success' });
+        } catch (error) {
+            console.error('Error requesting item:', error);
+            setSnackbar({ open: true, message: error?.response?.data?.error || 'Failed to create request', severity: 'error' });
+        } finally {
+            setLoading(false);
+            setSubmitting(false);
         }
-
-        if (editingId) {
-            setOrgs((prev) =>
-                prev.map((o) => (o.id === editingId ? { ...o, name, description } : o))
-            );
-            setEditingId(null);
-        } else {
-            const newOrg = { id: uid("org"), name, description, received: 0 };
-            setOrgs((prev) => [newOrg, ...prev]);
-            setShare((s) => ({ ...s, orgId: newOrg.id }));
-        }
-
-        setForm({ name: "", description: "" });
-    }
-
-    function startEdit(org) {
-        setEditingId(org.id);
-        setForm({ name: org.name, description: org.description });
-    }
-
-    function removeOrg(id) {
-        if (!window.confirm("Delete this organization? This will remove its data.")) return;
-        setOrgs((prev) => prev.filter((o) => o.id !== id));
-        setHistory((prev) => prev.filter((h) => h.orgId !== id));
-        if (share.orgId === id) setShare({ orgId: "", amount: "" });
-    }
-
-    // Share donation
-    function handleShare(e) {
-        e.preventDefault();
-        setError("");
-        const orgId = share.orgId;
-        const amount = parseFloat(share.amount);
-
-        if (!orgId) {
-            setError("Select an organization to share with.");
-            return;
-        }
-        if (!amount || amount <= 0) {
-            setError("Enter a positive donation amount.");
-            return;
-        }
-
-        const orgExists = orgs.find((o) => o.id === orgId);
-        if (!orgExists) {
-            setError("Selected organization not found.");
-            return;
-        }
-
-        // Update org received amount
-        setOrgs((prev) =>
-            prev.map((o) => (o.id === orgId ? { ...o, received: Number(o.received) + amount } : o))
-        );
-
-        // Add history entry
-        const entry = {
-            id: uid("don"),
-            orgId,
-            orgName: orgExists.name,
-            amount,
-            date: new Date().toISOString(),
-        };
-        setHistory((prev) => [entry, ...prev]);
-
-        setShare({ orgId: "", amount: "" });
-    }
-
-    if (loading) return <div>Loading...</div>;
+    };
 
     return (
-        <div style={styles.container}>
-            <h2 style={styles.title}>Organization Admin — Share Donations</h2>
+        <Box sx={{ minHeight: '100vh', py: 6, background: 'linear-gradient(180deg,#f5f7fa 0%,#eef2ff 100%)' }}>
+            <Container maxWidth="lg">
+                <Card sx={{ mb: 4, overflow: 'visible', position: 'relative', borderRadius: 3, boxShadow: 4 }}>
+                    <CardContent sx={{ display: 'flex', gap: 3, alignItems: 'center', py: 4, px: { xs: 3, md: 6 } }}>
+                        <Avatar sx={{ width: 84, height: 84, bgcolor: 'primary.main', fontSize: 28 }}>{orgName ? orgName[0]?.toUpperCase() : 'O'}</Avatar>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="h4" fontWeight={700}>{orgName || 'Organization Dashboard'}</Typography>
+                            <Typography color="text.secondary" sx={{ mt: 0.5 }}>{orgEmail}</Typography>
+                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                                <Chip label={`Requests ${wantedItems.length}`} color="primary" size="small" />
+                                <Chip label={`Assigned ${assignedPickups.length}`} color={assignedPickups.length ? 'success' : 'default'} size="small" />
+                            </Box>
+                        </Box>
+                        <Box>
+                            <Button variant="contained" color="primary" sx={{ mr: 2 }}>Edit Profile</Button>
+                            <Button variant="outlined" onClick={() => { localStorage.removeItem('orgId'); localStorage.removeItem('orgName'); sessionStorage.removeItem('role'); window.location.href = '/' }}>Logout</Button>
+                        </Box>
+                    </CardContent>
+                </Card>
 
-            <div style={styles.grid}>
-                <section style={styles.card}>
-                    <h3 style={styles.subtitle}>{editingId ? "Edit Organization" : "Add Organization"}</h3>
-                    <form onSubmit={handleAddOrUpdateOrg} style={styles.form}>
-                        <input
-                            placeholder="Name"
-                            value={form.name}
-                            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                            style={styles.input}
-                        />
-                        <input
-                            placeholder="Short description"
-                            value={form.description}
-                            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                            style={styles.input}
-                        />
-                        <div style={{ display: "flex", gap: 8 }}>
-                            <button type="submit" style={styles.button}>
-                                {editingId ? "Update" : "Add"}
-                            </button>
-                            {editingId && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditingId(null);
-                                        setForm({ name: "", description: "" });
-                                    }}
-                                    style={{ ...styles.button, background: "#e0e0e0", color: "#111" }}
-                                >
-                                    Cancel
-                                </button>
-                            )}
-                        </div>
-                    </form>
-                </section>
 
-                <section style={styles.card}>
-                    <h3 style={styles.subtitle}>Share Donation</h3>
-                    <form onSubmit={handleShare} style={styles.form}>
-                        <select
-                            value={share.orgId}
-                            onChange={(e) => setShare((s) => ({ ...s, orgId: e.target.value }))}
-                            style={styles.input}
-                        >
-                            <option value="">-- Select organization --</option>
-                            {orgs.map((o) => (
-                                <option key={o.id} value={o.id}>
-                                    {o.name} (received ${o.received})
-                                </option>
-                            ))}
-                        </select>
-                        <input
-                            placeholder="Amount (USD)"
-                            value={share.amount}
-                            onChange={(e) => setShare((s) => ({ ...s, amount: e.target.value }))}
-                            style={styles.input}
-                        />
-                        <button type="submit" style={styles.button}>
-                            Share
-                        </button>
-                    </form>
-                    {error && <div style={styles.error}>{error}</div>}
-                </section>
-            </div>
+                <Snackbar open={snackbar.open} autoHideDuration={4200} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+                    <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>{snackbar.message}</Alert>
+                </Snackbar>
 
-            <section style={{ marginTop: 20 }}>
-                <h3 style={styles.subtitle}>Organizations</h3>
-                {orgs.length === 0 ? (
-                    <div>No organizations yet.</div>
-                ) : (
-                    <ul style={styles.list}>
-                        {orgs.map((o) => (
-                            <li key={o.id} style={styles.listItem}>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 600 }}>{o.name}</div>
-                                    <div style={{ color: "#555", fontSize: 13 }}>{o.description}</div>
-                                    <div style={{ marginTop: 6, fontSize: 13 }}>Received: ${o.received}</div>
-                                </div>
-                                <div style={{ display: "flex", gap: 6 }}>
-                                    <button onClick={() => startEdit(o)} style={styles.smallButton}>
-                                        Edit
-                                    </button>
-                                    <button onClick={() => removeOrg(o.id)} style={styles.smallButtonDanger}>
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+                <Grid container spacing={4}>
+                    {/* Assigned Pickups */}
+                    <Grid item xs={12} md={6}><Card sx={{ p: 2, borderRadius: 3 }}><CardContent>
+                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Request Items</Typography>
+                        <Box component="form" onSubmit={handleRequestItem} sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+                            <TextField label="Item name" placeholder="Item name" value={itemName} onChange={(e) => setItemName(e.target.value)} sx={{ flex: 1 }} required />
+                            <TextField label="Quantity" type="number" placeholder="Quantity" value={quantity} onChange={(e) => setQuantity(e.target.value)} sx={{ width: 140 }} required />
+                            <Button type="submit" variant="contained" disabled={!orgId || submitting} color="primary">{submitting ? <CircularProgress size={20} color="inherit" /> : 'Request'}</Button>
+                        </Box>
 
-            <section style={{ marginTop: 20 }}>
-                <h3 style={styles.subtitle}>Donation History</h3>
-                {history.length === 0 ? (
-                    <div>No donations shared yet.</div>
-                ) : (
-                    <table style={styles.table}>
-                        <thead>
-                            <tr>
-                                <th style={styles.th}>Date</th>
-                                <th style={styles.th}>Organization</th>
-                                <th style={styles.th}>Amount (USD)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {history.map((h) => (
-                                <tr key={h.id}>
-                                    <td style={styles.td}>{new Date(h.date).toLocaleString()}</td>
-                                    <td style={styles.td}>{h.orgName}</td>
-                                    <td style={styles.td}>${h.amount}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </section>
-        </div>
+                        <Divider sx={{ my: 1 }} />
+
+                        <Typography variant="h6" fontWeight={700} sx={{ mt: 2, mb: 1 }}>Your Requests</Typography>
+                        {wantedItems.length === 0 ? (
+                            <Box sx={{ py: 6, textAlign: 'center' }}><Typography color="text.secondary">No requests yet</Typography></Box>
+                        ) : (
+                            <List>
+                                {wantedItems.map(req => (
+                                    <Card key={req._id} sx={{ p: 1, mb: 1, borderRadius: 2, boxShadow: 0 }}>
+                                        <CardContent sx={{ p: 1 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Typography variant="subtitle2" color="text.secondary">{new Date(req.createdAt).toLocaleDateString()}</Typography>
+                                                <Chip label={req.status} color={req.status === 'Approved' ? 'success' : req.status === 'Rejected' ? 'error' : 'warning'} size="small" />
+                                            </Box>
+                                            <Box sx={{ mt: 1 }}>
+                                                {req.items?.map((it, i) => <Typography key={i} sx={{ fontSize: 14 }}>• {it.name} <strong>x{it.quantity}</strong></Typography>)}
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </List>
+                        )}
+                        </CardContent></Card></Grid>
+
+                    {/* Requested Items */}
+                    <Grid item xs={12} md={6}><Card sx={{ p: 2, borderRadius: 3 }}><CardContent>
+                        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>Assigned Pickups</Typography>
+                        {assignedPickups.length === 0 ? (
+                            <Box sx={{ py: 8, textAlign: 'center' }}>
+                                <Typography color="text.secondary">No pickups assigned yet — you will be notified when an assigned donation is available.</Typography>
+                            </Box>
+                        ) : (
+                            <Box sx={{ display: 'grid', gap: 2 }}>
+                                {assignedPickups.map((pickup) => (
+                                    <Card key={pickup._id || pickup.id} sx={{ p: 2, borderRadius: 2 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                                            <div>
+                                                <Typography variant="subtitle1" fontWeight={700}>Request</Typography>
+                                                {pickup.items?.map((it, i) => (<Typography key={i} sx={{ fontSize: 14 }}>• {it.name} <strong>x{it.quantity}</strong></Typography>))}
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                {pickup.assignedDonation ? (
+                                                    <Box>
+                                                        <Typography variant="subtitle2">Assigned Donation</Typography>
+                                                        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{pickup.assignedDonation.userId?.ename || pickup.donorName || 'Donor'}</Typography>
+                                                        <Chip label={pickup.assignedDonation.status} color="success" size="small" sx={{ mt: 1 }} />
+                                                    </Box>
+                                                ) : (
+                                                    <Chip label="Awaiting" color="warning" size="small" />
+                                                )}
+                                            </div>
+                                        </Box>
+                                        <Divider sx={{ my: 1 }} />
+                                        <Typography variant="caption" color="text.secondary">Requested {new Date(pickup.createdAt).toLocaleDateString()}</Typography>
+                                    </Card>
+                                ))}
+                            </Box>
+                        )}
+                    </CardContent></Card></Grid>
+                </Grid>
+            </Container>
+        </Box>
     );
-}
-
-const styles = {
-    container: {
-        maxWidth: 940,
-        margin: "24px auto",
-        padding: 18,
-        fontFamily: "Segoe UI, Roboto, system-ui, sans-serif",
-    },
-    title: { margin: "0 0 12px 0" },
-    grid: { display: "flex", gap: 16, alignItems: "flex-start" },
-    card: {
-        flex: 1,
-        padding: 12,
-        border: "1px solid #e6e6e6",
-        borderRadius: 6,
-        background: "#fff",
-    },
-    subtitle: { margin: "0 0 8px 0", fontSize: 18 },
-    form: { display: "flex", flexDirection: "column", gap: 8 },
-    input: {
-        padding: "8px 10px",
-        borderRadius: 4,
-        border: "1px solid #ccc",
-        fontSize: 14,
-    },
-    button: {
-        padding: "8px 12px",
-        background: "#0b5fff",
-        color: "#fff",
-        border: "none",
-        borderRadius: 4,
-        cursor: "pointer",
-    },
-    error: { marginTop: 8, color: "#b00020" },
-    list: { listStyle: "none", padding: 0, margin: 0 },
-    listItem: {
-        display: "flex",
-        gap: 12,
-        padding: "10px 12px",
-        borderBottom: "1px solid #f0f0f0",
-        alignItems: "center",
-    },
-    smallButton: {
-        padding: "6px 8px",
-        borderRadius: 4,
-        border: "1px solid #bbb",
-        background: "#fff",
-        cursor: "pointer",
-    },
-    smallButtonDanger: {
-        padding: "6px 8px",
-        borderRadius: 4,
-        border: "1px solid #e0a0a0",
-        background: "#fff",
-        color: "#b00020",
-        cursor: "pointer",
-    },
-    table: { width: "100%", borderCollapse: "collapse", marginTop: 8 },
-    th: { textAlign: "left", padding: "8px 6px", borderBottom: "1px solid #ddd" },
-    td: { padding: "8px 6px", borderBottom: "1px solid #f5f5f5" },
 };
+
+export default Organization;

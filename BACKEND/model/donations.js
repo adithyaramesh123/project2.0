@@ -51,6 +51,8 @@ const donationSchema = new mongoose.Schema({
   address: { type: String },
 
   status: { type: String, default: 'Pending' },
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
+  assignedRequestId: { type: mongoose.Schema.Types.ObjectId, ref: 'OrganizationRequest', default: null },
 
   createdAt: { type: Date, default: Date.now },
 });

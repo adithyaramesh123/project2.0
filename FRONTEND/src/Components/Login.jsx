@@ -216,6 +216,11 @@ const Login = () => {
             }}
           ></Button>
         </div>
+        <div style={{ marginTop: 12 }}>
+          <Typography variant="body2" sx={{ color: '#718096' }}>
+            Organization? <Link to="/org/login" style={{ color: '#4299e1', textDecoration: 'none' }}>Login here</Link>
+          </Typography>
+        </div>
       </Box>
     </div>
   );
