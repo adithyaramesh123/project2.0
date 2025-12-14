@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -53,41 +53,70 @@ const Login = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)",
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("https://mkt.cdnpk.net/web-app/media/freepik-15-2000.webp")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
       <Box
         sx={{
-          width: 380,
+          width: { xs: 350, sm: 400 },
           padding: "40px 32px",
-          backgroundColor: "#ffffff",
-          borderRadius: "12px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
           textAlign: "center",
-          border: "1px solid rgba(0, 0, 0, 0.05)",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          backdropFilter: "blur(10px)",
+          position: "relative",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
+            borderRadius: "20px",
+            zIndex: -1,
+          },
         }}
       >
+        <Avatar
+          sx={{
+            width: 80,
+            height: 80,
+            mx: "auto",
+            mb: 2,
+            bgcolor: "rgba(255,255,255,0.2)",
+            fontSize: "2rem",
+          }}
+        >
+          👤
+        </Avatar>
+
         <Typography
           variant="h4"
           gutterBottom
           sx={{
-            fontFamily: "italian",
-            fontWeight: 600,
-            color: "#2d3748",
+            fontWeight: 700,
+            color: "#fff",
             letterSpacing: "-0.5px",
-            marginBottom: "24px",
+            marginBottom: "8px",
+            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
           }}
         >
-          Changing Lives, One Step at a Time
+          Welcome Back
         </Typography>
 
         <Typography
           variant="subtitle1"
           gutterBottom
           sx={{
-            color: "#718096",
+            color: "rgba(255,255,255,0.8)",
             marginBottom: 4,
-            fontSize: "15px",
+            fontSize: "16px",
           }}
         >
           Login to your account
@@ -98,13 +127,19 @@ const Login = () => {
           label="Email address"
           variant="outlined"
           margin="normal"
-          name="ename" // 🔍 make sure backend expects 'ename'
+          name="ename"
           onChange={inputHandler}
           sx={{
             marginBottom: "16px",
             "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(255,255,255,0.1)",
+              "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+              "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
+              "&.Mui-focused fieldset": { borderColor: "#fff" },
             },
+            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
+            "& .MuiInputBase-input": { color: "#fff" },
           }}
         />
 
@@ -117,10 +152,16 @@ const Login = () => {
           type="password"
           onChange={inputHandler}
           sx={{
-            marginBottom: "8px",
+            marginBottom: "16px",
             "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(255,255,255,0.1)",
+              "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+              "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
+              "&.Mui-focused fieldset": { borderColor: "#fff" },
             },
+            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
+            "& .MuiInputBase-input": { color: "#fff" },
           }}
         />
 
@@ -133,10 +174,11 @@ const Login = () => {
           <Link
             to="/forgot-password"
             style={{
-              color: "#4299e1",
+              color: "rgba(255,255,255,0.8)",
               fontSize: "14px",
               textDecoration: "none",
               fontWeight: 500,
+              "&:hover": { color: "#fff" },
             }}
           >
             Forgot password?
@@ -148,17 +190,18 @@ const Login = () => {
           fullWidth
           variant="contained"
           sx={{
-            backgroundColor: "#4299e1",
+            backgroundColor: "#fff",
+            color: "#000",
             marginTop: 1,
             fontWeight: "600",
             padding: "12px",
-            borderRadius: "8px",
+            borderRadius: "12px",
             textTransform: "none",
-            fontSize: "15px",
-            boxShadow: "none",
+            fontSize: "16px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             "&:hover": {
-              backgroundColor: "#3182ce",
-              boxShadow: "none",
+              backgroundColor: "rgba(255,255,255,0.9)",
+              boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
             },
           }}
         >
@@ -168,16 +211,16 @@ const Login = () => {
         <Typography
           variant="body2"
           sx={{
-            color: "#718096",
-            marginTop: 4,
+            color: "rgba(255,255,255,0.8)",
+            marginTop: 3,
             fontSize: "14px",
           }}
         >
           Don&apos;t have an account?{" "}
           <Link
-            to="/"
+            to="/s"
             style={{
-              color: "#4299e1",
+              color: "#fff",
               fontWeight: 600,
               textDecoration: "none",
             }}
@@ -186,40 +229,9 @@ const Login = () => {
           </Link>
         </Typography>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "16px",
-            justifyContent: "center",
-            marginTop: "24px",
-          }}
-        >
-          <Button
-            variant="outlined"
-            sx={{
-              borderRadius: "8px",
-              padding: "8px 16px",
-              borderColor: "#e2e8f0",
-              "&:hover": {
-                borderColor: "#cbd5e0",
-              },
-            }}
-          ></Button>
-          <Button
-            variant="outlined"
-            sx={{
-              borderRadius: "8px",
-              padding: "8px 16px",
-              borderColor: "#e2e8f0",
-              "&:hover": {
-                borderColor: "#cbd5e0",
-              },
-            }}
-          ></Button>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Typography variant="body2" sx={{ color: '#718096' }}>
-            Organization? <Link to="/org/login" style={{ color: '#4299e1', textDecoration: 'none' }}>Login here</Link>
+        <div style={{ marginTop: 16 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+            Organization? <Link to="/org/login" style={{ color: '#fff', textDecoration: 'none', fontWeight: 600 }}>Login here</Link>
           </Typography>
         </div>
       </Box>
