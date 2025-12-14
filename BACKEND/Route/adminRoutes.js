@@ -127,7 +127,14 @@ router.patch('/organizations/:id', auth, async (req, res) => {
 router.get('/requests', auth, async (req, res) => {
   try {
     const requests = await OrganizationRequest.find({}).sort({ createdAt: -1 }).populate('organizationId').populate('assignedDonationId');
-    res.json(requests);
+    // Normalize response: ensure there's an `organizationName` for the frontend to display
+    const normalized = requests.map(r => {
+      const obj = r.toObject ? r.toObject() : r;
+      const org = obj.organizationId;
+      const organizationName = org ? (typeof org === 'object' ? (org.name || org.contactEmail || String(org._id || '')) : String(org)) : 'Unknown';
+      return { ...obj, organizationName };
+    });
+    res.json(normalized);
   } catch (err) {
     console.error('Fetch requests error', err);
     res.status(500).json({ error: 'Failed to fetch requests' });

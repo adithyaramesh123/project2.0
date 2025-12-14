@@ -11,16 +11,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { loadStripe } from "@stripe/stripe-js";
 import axios from "axios";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-
-const stripePromise = loadStripe("pk_test_51YourActualPublishableKeyHere123...");
 
 /* ---------------------------------------------------
    CATEGORY ICONS
@@ -165,14 +156,10 @@ const DonationPage = () => {
         <Grid container spacing={3}>
           {/* MONEY CARD */}
           <Grid item xs={12} md={4}>
-            <Elements stripe={stripePromise}>
-              <MoneyCard
-                amount={form.money}
-                onChangeAmount={(v) =>
-                  setForm((prev) => ({ ...prev, money: v }))
-                }
-              />
-            </Elements>
+            <MoneyCard
+              amount={form.money}
+              onChangeAmount={(v) => setForm((prev) => ({ ...prev, money: v }))}
+            />
           </Grid>
 
           {/* DYNAMIC ITEMS */}
@@ -242,13 +229,20 @@ const DonationPage = () => {
    MONEY DONATION CARD
 ---------------------------------------------------- */
 const MoneyCard = ({ amount, onChangeAmount }) => {
-  const stripe = useStripe();
-  const elements = useElements();
   const [loading, setLoading] = useState(false);
 
-  const handleMoneySubmit = async () => {
-    if (!stripe || !elements) return;
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
+      if (document.getElementById("razorpay-sdk")) return resolve(true);
+      const script = document.createElement("script");
+      script.id = "razorpay-sdk";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
 
+  const handleMoneySubmit = async () => {
     if (!amount || Number(amount) <= 0) {
       alert("Enter a valid amount.");
       return;
@@ -256,35 +250,53 @@ const MoneyCard = ({ amount, onChangeAmount }) => {
 
     setLoading(true);
 
-    const cardEl = elements.getElement(CardElement);
-
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardEl,
-    });
-
-    if (error) {
-      alert(error.message);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await axios.post("/api/donations/money", {
-        amount: Number(amount),
-        userId: "testUser",
-        stripeToken: paymentMethod.id,
-      });
+      // create order on server (amount expected in rupees)
+      const orderRes = await axios.post("/api/donations/money", { amount: Number(amount), userId: "testUser" });
+      if (!orderRes.data || !orderRes.data.orderId) throw new Error('Order creation failed');
 
-      if (res.data.success) {
-        alert("Thank you for your donation!");
-        onChangeAmount("");
-        cardEl.clear();
-      } else {
-        alert("Payment failed.");
-      }
-    } catch (e) {
-      alert("Payment error");
+      const ok = await loadRazorpayScript();
+      if (!ok) throw new Error('Failed to load Razorpay SDK');
+
+      const { orderId, amount: orderAmount, currency, keyId } = orderRes.data;
+
+      const options = {
+        key: keyId,
+        amount: orderAmount, // in paise
+        currency: currency || 'INR',
+        name: 'Changing Lives',
+        description: 'Donation',
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            const verifyRes = await axios.post('/api/donations/money/verify', {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: orderAmount,
+              userId: 'testUser'
+            });
+            if (verifyRes.data && verifyRes.data.success) {
+              alert('Thank you! Your donation is received.');
+              onChangeAmount('');
+            } else {
+              alert('Verification failed.');
+            }
+          } catch (err) {
+            console.error('Verification error', err);
+            alert('Payment verification failed.');
+          }
+        },
+        prefill: { name: 'Test User', email: 'test@example.com' },
+        theme: { color: '#22c55e' }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.error('Payment error', err);
+      alert(err?.response?.data?.error || err.message || 'Payment error');
     } finally {
       setLoading(false);
     }
@@ -321,15 +333,8 @@ const MoneyCard = ({ amount, onChangeAmount }) => {
           sx={{ mb: 2 }}
         />
 
-        <Box
-          sx={{
-            p: 1.5,
-            borderRadius: 2,
-            border: "1px solid #dde3ee",
-            mb: 2,
-          }}
-        >
-          <CardElement />
+        <Box sx={{ mb: 2, textAlign: 'center', color: '#556' }}>
+          <Typography variant="caption">You will be redirected to Razorpay Checkout to complete the payment (test mode).</Typography>
         </Box>
 
         <Button variant="contained" fullWidth disabled={loading} onClick={handleMoneySubmit}>

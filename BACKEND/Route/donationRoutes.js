@@ -15,6 +15,23 @@ function getStripe() {
   return stripe;
 }
 
+/* ---------------- Razorpay Init (Lazy Load) ---------------- */
+const crypto = require('crypto');
+let razorpayInstance;
+function getRazorpay() {
+  if (!razorpayInstance) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      console.error('❌ Missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET');
+      return null;
+    }
+    const Razorpay = require('razorpay');
+    razorpayInstance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+  }
+  return razorpayInstance;
+}
+
 /* ---------------- Models ---------------- */
 const Donation = require("../model/donations");
 // Simple middleware to protect admin routes (similar to adminRoutes.js)
@@ -30,43 +47,67 @@ const NeededItem = require("../model/neededItems");
 const User = require("../model/User");
 
 /* ============================================================
-   1️⃣ MONEY DONATION (Stripe)
+   1️⃣ MONEY DONATION (Razorpay)
+   POST /api/donations/money - creates a Razorpay order and returns order info for client checkout
+   POST /api/donations/money/verify - verify payment signature and record donation
 ============================================================ */
-router.post("/money", async (req, res) => {
+router.post('/money', async (req, res) => {
   try {
-    const stripeInstance = getStripe();
-    if (!stripeInstance)
-      return res.status(500).json({ error: "Stripe not configured" });
+    const { amount, userId } = req.body;
+    if (!amount || Number(amount) <= 0) return res.status(400).json({ error: 'Invalid amount' });
 
-    const { amount, userId, stripeToken } = req.body;
+    const razorpay = getRazorpay();
+    if (!razorpay) return res.status(500).json({ error: 'Razorpay not configured' });
 
-    if (!amount || amount <= 0)
-      return res.status(400).json({ error: "Invalid amount" });
+    // Razorpay expects amount in paise (integer)
+    const amountPaise = Math.round(Number(amount) * 100);
 
-    const paymentIntent = await stripeInstance.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: "usd",
-      metadata: { userId },
+    const order = await razorpay.orders.create({
+      amount: amountPaise,
+      currency: 'INR',
+      receipt: `rcpt_${Date.now()}`,
+      payment_capture: 1,
     });
 
-    const confirmedPayment = await stripeInstance.paymentIntents.confirm(
-      paymentIntent.id,
-      { payment_method: stripeToken }
-    );
+    res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId: process.env.RAZORPAY_KEY_ID });
+  } catch (err) {
+    console.error('Razorpay order creation error', err);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
 
+router.post('/money/verify', async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, amount, userId } = req.body;
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) return res.status(400).json({ error: 'Missing payment verification fields' });
+
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) return res.status(500).json({ error: 'Razorpay secret not configured' });
+
+    const generatedSignature = crypto.createHmac('sha256', keySecret).update(razorpay_order_id + '|' + razorpay_payment_id).digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      console.error('Invalid Razorpay signature', { generatedSignature, razorpay_signature });
+      return res.status(400).json({ error: 'Invalid signature' });
+    }
+
+    // Save donation (amount is expected in paise)
     const donation = new Donation({
-      userId,
-      type: "Money",
-      amount,
-      stripePaymentId: confirmedPayment.id,
+      userId: userId || 'testUser',
+      type: 'Money',
+      amount: amount ? Number(amount) / 100 : undefined,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id,
+      razorpaySignature: razorpay_signature,
+      status: 'Completed',
     });
 
     await donation.save();
 
-    res.json({ success: true, paymentId: confirmedPayment.id });
-  } catch (error) {
-    console.error("💳 Money Donation Error:", error.message);
-    res.status(400).json({ error: error.message });
+    res.json({ success: true, donationId: donation._id });
+  } catch (err) {
+    console.error('Razorpay verification error', err);
+    res.status(500).json({ error: 'Verification failed' });
   }
 });
 
@@ -331,6 +372,30 @@ router.get('/wanted-items', async (req, res) => {
   }
 });
 
+// DELETE /api/wanted-items/:id - organization cancels their request
+router.delete('/wanted-items/:id', async (req, res) => {
+  try {
+    const orgId = req.query.organizationId || req.body.organizationId;
+    if (!orgId) return res.status(400).json({ error: 'organizationId required' });
+    if (!mongoose.Types.ObjectId.isValid(orgId)) return res.status(400).json({ error: 'Invalid organizationId' });
+
+    const requestDoc = await OrganizationRequest.findById(req.params.id);
+    if (!requestDoc) return res.status(404).json({ error: 'Request not found' });
+    if (String(requestDoc.organizationId) !== String(orgId)) return res.status(403).json({ error: 'Not authorized to cancel this request' });
+
+    // Only allow cancelling if still pending or rejected (not already assigned/approved)
+    if (!['Pending', 'Rejected'].includes(requestDoc.status)) {
+      return res.status(400).json({ error: 'Only Pending or Rejected requests can be cancelled' });
+    }
+
+    await OrganizationRequest.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Cancel wanted-item error', err);
+    res.status(500).json({ error: 'Failed to cancel request' });
+  }
+});
+
 // GET /api/assigned-pickups?organizationId=... - list assigned pickups for an organization
 router.get('/assigned-pickups', async (req, res) => {
   try {
@@ -357,6 +422,35 @@ router.get('/assigned-pickups', async (req, res) => {
   } catch (err) {
     console.error('Fetch assigned pickups error', err);
     res.status(500).json({ error: 'Failed to fetch assigned pickups' });
+  }
+});
+
+// PATCH /api/requests/:id/status - organization updates the status of its request (e.g., mark as Picked)
+router.patch('/requests/:id/status', async (req, res) => {
+  try {
+    const { status, organizationId } = req.body;
+    if (!status) return res.status(400).json({ error: 'status is required' });
+    if (!organizationId) return res.status(400).json({ error: 'organizationId is required' });
+    if (!mongoose.Types.ObjectId.isValid(organizationId)) return res.status(400).json({ error: 'Invalid organizationId' });
+
+    const request = await OrganizationRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (String(request.organizationId) !== String(organizationId)) return res.status(403).json({ error: 'Not authorized to update this request' });
+
+    // Only allow marking as Picked if a donation was assigned and current status is Assigned
+    if (status === 'Picked') {
+      if (!request.assignedDonationId) return res.status(400).json({ error: 'No donation has been assigned to this request' });
+      if (request.status !== 'Assigned') return res.status(400).json({ error: 'Request must be Assigned to mark as Picked' });
+      request.status = 'Picked';
+      await request.save();
+      return res.json({ success: true, request });
+    }
+
+    // For safety, do not allow other status changes here
+    return res.status(400).json({ error: 'Unsupported status update' });
+  } catch (err) {
+    console.error('Update request status (org) error', err);
+    res.status(500).json({ error: 'Failed to update request status' });
   }
 });
 

@@ -24,6 +24,7 @@ function App() {
 
   return (
     <>
+      <Nav />
       <Routes>
         <Route path='/s' element={<Signup/>}/>
         <Route path='/L' element={<Login/>}/>

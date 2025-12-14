@@ -57,7 +57,7 @@ export default function AdminOrganizationView() {
                 requests.map(r => (
                   <Box key={r._id} sx={{ mb: 1 }}>
                     <Typography variant="body1">{r.items.map(i => `${i.name} x${i.quantity}`).join(', ')}</Typography>
-                    <Typography variant="caption">{new Date(r.createdAt).toLocaleString()} — {r.status}</Typography>
+                    <Typography variant="caption">{r?.createdAt ? new Date(r.createdAt).toLocaleString() : 'Unknown'} — {r.status}</Typography>
                     {r.assignedDonationId && (
                       <Typography variant="body2">Assigned Donation: {r.assignedDonationId._id.substring(0, 8)}...</Typography>
                     )}

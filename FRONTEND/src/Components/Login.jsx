@@ -25,6 +25,7 @@ const Login = () => {
         // save role
         if (res.data?.user?.role) {
           sessionStorage.setItem("role", res.data.user.role);
+          window.dispatchEvent(new Event('roleChanged'));
         }
 
         if (res.status === 200) {

@@ -42,6 +42,9 @@ const donationSchema = new mongoose.Schema({
   // Money donation
   amount: { type: Number },
   stripePaymentId: { type: String },
+  razorpayPaymentId: { type: String },
+  razorpayOrderId: { type: String },
+  razorpaySignature: { type: String },
 
   // Item donation (supports MULTIPLE items)
   itemDetails: { type: [itemSchema], default: [] },

@@ -23,6 +23,7 @@ const OrganizationLogin = () => {
                 localStorage.setItem('orgEmail', org.contactEmail || '');
                 // Optionally store org token or role
                 sessionStorage.setItem('role', 'organization');
+                window.dispatchEvent(new Event('roleChanged'));
                 navigate('/admin/org');
             }
         } catch (err) {

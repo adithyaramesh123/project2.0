@@ -48,6 +48,7 @@ const Adminlogin = () => {
       if (res?.status === 200 && data) {
         if (data.user && data.user.role) {
           sessionStorage.setItem('role', data.user.role)
+          window.dispatchEvent(new Event('roleChanged'))
         }
         if (data.user?.role === 'admin') navigate('/admin')
         else navigate('/user')

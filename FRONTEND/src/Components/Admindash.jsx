@@ -125,7 +125,7 @@ import AdminOrganizationView from './AdminOrganizationView'; // New import added
 // );
 // }
 
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -141,7 +141,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Divider,
   Tabs, // NEW
   Tab, // NEW
   Table, // NEW
@@ -157,7 +156,7 @@ import {
   FormControl, // NEW
   InputLabel, // NEW
   CircularProgress // NEW
-    ,Snackbar,Alert,Stack
+    ,Snackbar,Alert
     ,Dialog,DialogTitle,DialogContent,DialogActions,Radio,RadioGroup,FormControlLabel
 } from "@mui/material";
 
@@ -204,7 +203,9 @@ const getStatusColor = (status) => {
         case "Approved": return "success";
         case "Rejected": return "error";
         case "Pending": return "warning";
+        case "Assigned": return "warning";
         case "Completed": return "primary";
+        case "Picked": return "info";
         default: return "default";
     }
 };
@@ -371,7 +372,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
                                         ? `💵 Money — ₹${d.amount.toLocaleString()}`
                                         : `📦 ${d.itemDetails ? d.itemDetails.length : 0} items donated`
                                 }
-                                secondary={new Date(d.createdAt).toLocaleString()}
+                                secondary={d?.createdAt ? new Date(d.createdAt).toLocaleString() : ''}
                             />
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <Chip label={d.status} color={getStatusColor(d.status)} />
@@ -752,9 +753,14 @@ function AdminItemAssignmentPage() {
                                 <TableRow key={d._id} hover>
                                     <TableCell>{d._id.substring(0, 8)}...</TableCell>
                                     <TableCell>
-                                        <Chip label={`${d.itemDetails.length} items`} size="small" color="primary" />
+                                        <Box>
+                                            <Chip label={`${d.itemDetails?.length || 0} items`} size="small" color="primary" />
+                                            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.6 }}>
+                                                {d.itemDetails?.map(it => `${it.name} x${it.quantity}`).join(', ')}
+                                            </Typography>
+                                        </Box>
                                     </TableCell>
-                                    <TableCell>{d.address.substring(0, 30)}...</TableCell>
+                                    <TableCell>{d.address ? (d.address.substring(0, 30) + '...') : '—'}</TableCell>
                                     <TableCell sx={{ minWidth: 250 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Select Organization</InputLabel>
@@ -851,7 +857,7 @@ export default function AdminDashboard() {
     loadAllAnalyticsData();
   }, []);
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (_, newValue) => {
     setCurrentTab(newValue);
   };
   
@@ -1009,15 +1015,37 @@ function AdminRequestsPage() {
     };
 
     const columns = [
-        { field: 'organization', headerName: 'Organization', width: 200, valueGetter: (params) => params.row.organizationId?.name || '' },
-        { field: 'items', headerName: 'Items', width: 300, renderCell: (params) => (
+        { field: 'organization', headerName: 'Organization', width: 240, renderCell: (params) => {
+            const org = params?.row?.organizationId;
+            let name = '';
+            if (org && typeof org === 'object') name = org.name || org.contactEmail || String(org._id || '');
+            else if (org && typeof org === 'string') name = org;
+            else name = params?.row?.organizationName || 'Unknown org';
+            return <Typography sx={{ fontWeight: 600 }}>{name}</Typography>;
+        } },
+        { field: 'items', headerName: 'Requested Items', width: 360, renderCell: (params) => (
             <Box>
-                {params.row.items && params.row.items.map((it, i) => <Chip key={i} label={`${it.name} x${it.quantity}`} sx={{ mr: 0.5 }} size="small" />)}
+                {params?.row?.items && params.row.items.map((it, i) => <Chip key={i} label={`${it.name} x${it.quantity}`} sx={{ mr: 0.5 }} size="small" />)}
             </Box>
         ) },
-        { field: 'status', headerName: 'Status', width: 120, renderCell: (params) => <Chip label={params.value} color={getStatusColor(params.value)} size="small" /> },
-        { field: 'assignedDonationId', headerName: 'Assigned Donation', width: 200, valueGetter: (params) => params.row.assignedDonationId ? params.row.assignedDonationId._id.substring(0,8) + '...' : '' },
-        { field: 'createdAt', headerName: 'Requested', width: 160, valueGetter: (params) => new Date(params.row.createdAt).toLocaleString() },
+        { field: 'status', headerName: 'Status', width: 120, renderCell: (params) => <Chip label={params?.value} color={getStatusColor(params?.value)} size="small" /> },
+        { field: 'assignedDonationId', headerName: 'Assigned Donation (Donated Items)', width: 300, renderCell: (params) => {
+            const d = params?.row?.assignedDonationId;
+            if (!d) return <Typography color="text.secondary">—</Typography>;
+            const idShort = d._id ? `${d._id.substring(0,8)}...` : 'Donation';
+            const items = d.itemDetails && Array.isArray(d.itemDetails) && d.itemDetails.length ? d.itemDetails.map(it => `${it.name} x${it.quantity}`).join(', ') : '';
+            return (
+                <Box>
+                    <Typography sx={{ fontWeight: 700 }}>{idShort}</Typography>
+                    {items && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{items}</Typography>}
+                </Box>
+            );
+        } },
+        { field: 'createdAt', headerName: 'Requested', width: 160, valueGetter: (params) => {
+            const raw = params?.row?.createdAt;
+            const dt = raw ? new Date(raw) : null;
+            return dt && !isNaN(dt.getTime()) ? dt.toLocaleString() : '';
+        } },
         { field: 'actions', headerName: 'Actions', width: 180, sortable: false, filterable: false, renderCell: (params) => (
             <Box>
                 {params.row.status === 'Pending' && (
@@ -1051,7 +1079,7 @@ function AdminRequestsPage() {
                     {unassignedDonations.length === 0 ? (<Typography>No unassigned item donations available</Typography>) : (
                         <RadioGroup value={pickedDonation} onChange={(e) => setPickedDonation(e.target.value)}>
                             {unassignedDonations.map(d => (
-                                <FormControlLabel key={d._id} value={d._id} control={<Radio />} label={`${d._id.substring(0,8)} - ${d.itemDetails?.length || 1} items - ${new Date(d.createdAt).toLocaleDateString()}`} />
+                                <FormControlLabel key={d._id} value={d._id} control={<Radio />} label={`${d._id.substring(0,8)} - ${d.itemDetails?.map(it => it.name).join(', ') || (d.itemDetails?.length + ' items')} - ${d?.createdAt ? new Date(d.createdAt).toLocaleDateString() : 'Unknown'}`} />
                             ))}
                         </RadioGroup>
                     )}

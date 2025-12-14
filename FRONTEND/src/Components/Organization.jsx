@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -29,11 +30,15 @@ const Organization = () => {
     const [submitting, setSubmitting] = useState(false);
 
 
+    const navigate = useNavigate();
+    const baseurl = import.meta.env.VITE_API_BASE_URL || '';
+
     const orgId = localStorage.getItem('orgId');
     const orgName = localStorage.getItem('orgName') || '';
     const orgEmail = localStorage.getItem('orgEmail') || '';
 
     useEffect(() => {
+        if (!orgId) return navigate('/org/login');
         fetchWantedItems();
         fetchAssignedPickups();
     }, [orgId]);
@@ -44,7 +49,7 @@ const Organization = () => {
                 setWantedItems([]);
                 return;
             }
-            const response = await axios.get(`/api/donations/wanted-items?organizationId=${orgId}`);
+            const response = await axios.get(`${baseurl}/api/donations/wanted-items?organizationId=${orgId}`);
             setWantedItems(response.data);
         } catch (error) {
             console.error('Error fetching wanted items:', error);
@@ -58,7 +63,7 @@ const Organization = () => {
                 setAssignedPickups([]);
                 return;
             }
-            const response = await axios.get(`/api/donations/assigned-pickups?organizationId=${orgId}`);
+            const response = await axios.get(`${baseurl}/api/donations/assigned-pickups?organizationId=${orgId}`);
             setAssignedPickups(response.data);
         } catch (error) {
             console.error('Error fetching assigned pickups:', error);
@@ -77,7 +82,7 @@ const Organization = () => {
                 setSnackbar({ open: true, message: 'Organization ID is missing. Please log in as organization.', severity: 'warning' });
                 return;
             }
-            await axios.post('/api/donations/wanted-items', {
+            await axios.post(`${baseurl}/api/donations/wanted-items`, {
                 itemName,
                 quantity,
                 organizationId: orgId,
@@ -92,6 +97,21 @@ const Organization = () => {
         } finally {
             setLoading(false);
             setSubmitting(false);
+        }
+    };
+
+    const handleCancelRequest = async (id) => {
+        if (!window.confirm('Cancel this request?')) return;
+        try {
+            setLoading(true);
+            await axios.delete(`${baseurl}/api/donations/wanted-items/${id}?organizationId=${orgId}`);
+            setSnackbar({ open: true, message: 'Request cancelled', severity: 'success' });
+            fetchWantedItems();
+        } catch (err) {
+            console.error('Cancel request error', err);
+            setSnackbar({ open: true, message: err?.response?.data?.error || 'Failed to cancel request', severity: 'error' });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -142,11 +162,16 @@ const Organization = () => {
                                     <Card key={req._id} sx={{ p: 1, mb: 1, borderRadius: 2, boxShadow: 0 }}>
                                         <CardContent sx={{ p: 1 }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Typography variant="subtitle2" color="text.secondary">{new Date(req.createdAt).toLocaleDateString()}</Typography>
+                                                <Typography variant="subtitle2" color="text.secondary">{req?.createdAt ? new Date(req.createdAt).toLocaleString() : ''}</Typography>
                                                 <Chip label={req.status} color={req.status === 'Approved' ? 'success' : req.status === 'Rejected' ? 'error' : 'warning'} size="small" />
                                             </Box>
                                             <Box sx={{ mt: 1 }}>
                                                 {req.items?.map((it, i) => <Typography key={i} sx={{ fontSize: 14 }}>• {it.name} <strong>x{it.quantity}</strong></Typography>)}
+                                            </Box>
+                                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                                                {req.status === 'Pending' && (
+                                                    <Button size="small" color="error" variant="outlined" onClick={() => handleCancelRequest(req._id)} disabled={loading}>Cancel</Button>
+                                                )}
                                             </Box>
                                         </CardContent>
                                     </Card>
@@ -184,7 +209,7 @@ const Organization = () => {
                                             </div>
                                         </Box>
                                         <Divider sx={{ my: 1 }} />
-                                        <Typography variant="caption" color="text.secondary">Requested {new Date(pickup.createdAt).toLocaleDateString()}</Typography>
+                                        <Typography variant="caption" color="text.secondary">Requested {pickup?.createdAt ? new Date(pickup.createdAt).toLocaleString() : ''}</Typography>
                                     </Card>
                                 ))}
                             </Box>

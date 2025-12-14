@@ -91,7 +91,7 @@ var dotenv = require("dotenv");
 dotenv.config();
 require("./Connection");
 
-var port = process.env.PORT;
+var port = process.env.PORT || process.env.port || 2000;
 var app = express();
 
 app.use(express.json());
