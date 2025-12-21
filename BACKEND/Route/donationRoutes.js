@@ -425,7 +425,7 @@ router.get('/assigned-pickups', async (req, res) => {
   }
 });
 
-// PATCH /api/requests/:id/status - organization updates the status of its request (e.g., mark as Picked)
+// PATCH /api/requests/:id/status - organization updates the status of its request (e.g., mark as Picked or Accepted)
 router.patch('/requests/:id/status', async (req, res) => {
   try {
     const { status, organizationId } = req.body;
@@ -437,10 +437,19 @@ router.patch('/requests/:id/status', async (req, res) => {
     if (!request) return res.status(404).json({ error: 'Request not found' });
     if (String(request.organizationId) !== String(organizationId)) return res.status(403).json({ error: 'Not authorized to update this request' });
 
-    // Only allow marking as Picked if a donation was assigned and current status is Assigned
+    // Allow organizations to accept an assignment
+    if (status === 'Accepted') {
+      if (!request.assignedDonationId) return res.status(400).json({ error: 'No donation has been assigned to this request' });
+      if (request.status !== 'Assigned') return res.status(400).json({ error: 'Request must be Assigned to mark as Accepted' });
+      request.status = 'Accepted';
+      await request.save();
+      return res.json({ success: true, request });
+    }
+
+    // Allow marking as Picked if a donation was assigned and current status is Assigned or Accepted
     if (status === 'Picked') {
       if (!request.assignedDonationId) return res.status(400).json({ error: 'No donation has been assigned to this request' });
-      if (request.status !== 'Assigned') return res.status(400).json({ error: 'Request must be Assigned to mark as Picked' });
+      if (!['Assigned', 'Accepted'].includes(request.status)) return res.status(400).json({ error: 'Request must be Assigned or Accepted to mark as Picked' });
       request.status = 'Picked';
       await request.save();
       return res.json({ success: true, request });
@@ -471,10 +480,28 @@ router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
     if (donation.type !== 'Item') return res.status(400).json({ error: 'Only item donations can be assigned' });
     if (donation.status !== 'Approved') return res.status(400).json({ error: 'Donation must be Approved to assign' });
 
-    const updated = await Donation.findByIdAndUpdate(req.params.id, { organization: organizationId, status: 'Assigned' }, { new: true });
-    if (!updated) return res.status(404).json({ error: 'Donation not found' });
+    // Assign donation to organization
+    donation.organization = organizationId;
+    donation.status = 'Assigned';
 
-    res.json({ success: true, donation: updated });
+    // Try to link to an existing organization request (Pending/Approved and not already assigned)
+    let matchingRequest = await OrganizationRequest.findOne({ organizationId, assignedDonationId: null, status: { $in: ['Pending', 'Approved'] } });
+    if (matchingRequest) {
+      matchingRequest.assignedDonationId = donation._id;
+      matchingRequest.status = 'Assigned';
+      await matchingRequest.save();
+      donation.assignedRequestId = matchingRequest._id;
+    } else {
+      // Create a new OrganizationRequest so that the organization can see this assignment in their dashboard
+      const items = (donation.itemDetails || []).map(it => ({ name: it.name, quantity: it.quantity }));
+      const newReq = await OrganizationRequest.create({ organizationId, items, status: 'Assigned', assignedDonationId: donation._id });
+      donation.assignedRequestId = newReq._id;
+      matchingRequest = newReq;
+    }
+
+    await donation.save();
+
+    res.json({ success: true, donation, request: matchingRequest });
   } catch (err) {
     console.error('Assign donation error', err);
     res.status(500).json({ error: 'Failed to assign donation' });

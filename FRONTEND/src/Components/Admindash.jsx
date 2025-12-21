@@ -203,7 +203,8 @@ const getStatusColor = (status) => {
         case "Approved": return "success";
         case "Rejected": return "error";
         case "Pending": return "warning";
-        case "Assigned": return "warning";
+            case "Assigned": return "warning";
+        case "Accepted": return "info"; // Organization accepted the assignment
         case "Completed": return "primary";
         case "Picked": return "info";
         default: return "default";
@@ -947,6 +948,15 @@ function AdminRequestsPage() {
 
     useEffect(() => {
         fetchRequests();
+
+        // Refresh when other components update requests/donations
+        const handler = () => fetchRequests();
+        window.addEventListener('requestUpdated', handler);
+        window.addEventListener('donationUpdated', handler);
+        return () => {
+            window.removeEventListener('requestUpdated', handler);
+            window.removeEventListener('donationUpdated', handler);
+        };
     }, []);
 
     const fetchRequests = async () => {

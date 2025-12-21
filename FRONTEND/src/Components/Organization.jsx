@@ -115,6 +115,26 @@ const Organization = () => {
         }
     };
 
+    // Organization accepts an assigned donation for a request
+    const handleAcceptAssignment = async (requestId) => {
+        if (!window.confirm('Accept this assigned donation?')) return;
+        try {
+            setLoading(true);
+            const res = await axios.patch(`${baseurl}/api/donations/requests/${requestId}/status`, { status: 'Accepted', organizationId: orgId });
+            setSnackbar({ open: true, message: 'Assignment accepted', severity: 'success' });
+            fetchAssignedPickups();
+            // Also refresh wanted items in case status changed
+            fetchWantedItems();
+            // Emit a global event so admin views can react
+            window.dispatchEvent(new Event('requestUpdated'));
+        } catch (err) {
+            console.error('Accept assignment error', err);
+            setSnackbar({ open: true, message: err?.response?.data?.error || 'Failed to accept assignment', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Box sx={{ minHeight: '100vh', py: 6, background: 'linear-gradient(180deg,#f5f7fa 0%,#eef2ff 100%)' }}>
             <Container maxWidth="lg">
@@ -163,7 +183,11 @@ const Organization = () => {
                                         <CardContent sx={{ p: 1 }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <Typography variant="subtitle2" color="text.secondary">{req?.createdAt ? new Date(req.createdAt).toLocaleString() : ''}</Typography>
-                                                <Chip label={req.status} color={req.status === 'Approved' ? 'success' : req.status === 'Rejected' ? 'error' : 'warning'} size="small" />
+                                                <Chip label={req.status} color={
+                                                    req.status === 'Approved' ? 'success' :
+                                                    req.status === 'Rejected' ? 'error' :
+                                                    req.status === 'Accepted' ? 'info' : 'warning'
+                                                } size="small" />
                                             </Box>
                                             <Box sx={{ mt: 1 }}>
                                                 {req.items?.map((it, i) => <Typography key={i} sx={{ fontSize: 14 }}>• {it.name} <strong>x{it.quantity}</strong></Typography>)}
@@ -201,7 +225,18 @@ const Organization = () => {
                                                     <Box>
                                                         <Typography variant="subtitle2">Assigned Donation</Typography>
                                                         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{pickup.assignedDonation.userId?.ename || pickup.donorName || 'Donor'}</Typography>
-                                                        <Chip label={pickup.assignedDonation.status} color="success" size="small" sx={{ mt: 1 }} />
+                                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+                                                            <Chip label={pickup.assignedDonation.status} color="success" size="small" />
+                                                            <Chip label={pickup.status} color={pickup.status === 'Assigned' ? 'warning' : pickup.status === 'Accepted' ? 'info' : 'default'} size="small" />
+                                                        </Box>
+                                                        {/* If this request is Assigned, allow the organization to Accept the assignment */}
+                                                        {pickup.status === 'Assigned' && (
+                                                            <Box sx={{ mt: 1 }}>
+                                                                <Button size="small" variant="contained" color="primary" onClick={() => handleAcceptAssignment(pickup.requestId || pickup.id)}>
+                                                                    Accept Assignment
+                                                                </Button>
+                                                            </Box>
+                                                        )}
                                                     </Box>
                                                 ) : (
                                                     <Chip label="Awaiting" color="warning" size="small" />

@@ -8,7 +8,8 @@ const requestItemSchema = new mongoose.Schema({
 const organizationRequestSchema = new mongoose.Schema({
   organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   items: { type: [requestItemSchema], default: [] },
-  status: { type: String, enum: ['Pending', 'Approved', 'Assigned', 'Rejected'], default: 'Pending' },
+  // Added 'Accepted' status so organizations can accept an assigned donation
+  status: { type: String, enum: ['Pending', 'Approved', 'Assigned', 'Accepted', 'Rejected'], default: 'Pending' },
   assignedDonationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Donation', default: null },
   createdAt: { type: Date, default: Date.now },
 });

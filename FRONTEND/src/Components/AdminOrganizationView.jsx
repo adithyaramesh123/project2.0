@@ -13,6 +13,14 @@ export default function AdminOrganizationView() {
 
   useEffect(() => {
     fetchOrg();
+
+    const handler = () => fetchOrg();
+    window.addEventListener('requestUpdated', handler);
+    window.addEventListener('donationUpdated', handler);
+    return () => {
+      window.removeEventListener('requestUpdated', handler);
+      window.removeEventListener('donationUpdated', handler);
+    };
   }, [id]);
 
   const fetchOrg = async () => {
