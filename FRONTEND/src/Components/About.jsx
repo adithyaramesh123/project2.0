@@ -167,7 +167,7 @@ export default function About() {
                     <div style={styles.left}>
                         <h2 style={styles.sectionTitle}>Who we are</h2>
                         <p style={styles.paragraph}>
-                          At Change In Lives, we believe that a simple act of kindness can spark a lifetime of hope. Every child deserves a warm meal, every family deserves dignity, and every struggling soul deserves to feel seen, cared for, and valued.
+            Changing Lives, we believe that a simple act of kindness can spark a lifetime of hope. Every child deserves a warm meal, every family deserves dignity, and every struggling soul deserves to feel seen, cared for, and valued.
 
 That’s why we dedicate our hearts and hands to feeding hungry children, supporting poor families, and bringing light to those living through dark times. What began as a small effort to help a few has grown into a family of volunteers and supporters who share one dream—to change lives, one meal and one moment at a time.
 
