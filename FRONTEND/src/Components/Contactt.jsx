@@ -1,193 +1,170 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { Box, Container, Grid, TextField, Button, Typography, Avatar, InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import MessageIcon from '@mui/icons-material/Message';
+import PhoneIcon from '@mui/icons-material/Phone';
+import SendIcon from '@mui/icons-material/Send';
 
-function Contactt() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    message: "",
-  });
+// Pastel-blue page background (matches Signup)
+const BackgroundStyle = {
+  backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
+  backgroundSize: 'cover, 100% 60px',
+  backgroundPosition: 'center, bottom',
+  backgroundRepeat: 'no-repeat, no-repeat',
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '40px 0',
+  fontFamily: "'Poppins', sans-serif",
+};
+
+export default function Contactt() {
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+  const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false);
+
+  const validate = (name, value) => {
+    let msg = '';
+    if ((name === 'email' || name === 'message') && !value) msg = 'Required';
+    if (name === 'email' && value && !/\S+@\S+\.\S+/.test(value)) msg = 'Invalid email';
+    setErrors(prev => {
+      const copy = { ...prev };
+      if (msg) copy[name] = msg; else delete copy[name];
+      return copy;
+    });
+  };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (['email', 'message'].includes(name)) validate(name, value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message Sent ✅");
-    console.log(formData);
+    // Basic validation
+    validate('email', formData.email);
+    validate('message', formData.message);
+    if (!formData.email || !formData.message) return;
+
+    // Simulate send
+    console.log('Contact message:', formData);
+    setOpen(true);
+    setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+    setErrors({});
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.overlay}>
-        <div style={styles.container}>
-          {/* Left - Text and Info */}
-          <div style={styles.left}>
-            <h1 style={styles.title}>Get in Touch</h1>
-            <p style={styles.paragraph}>I'd love to hear from you!</p>
-            <p style={styles.paragraph}>
-              Whether you have a question or just want to say hi, feel free to drop a message.
-            </p>
-            <p style={styles.email}>📧 <a href="mailto:youremail@example.com" style={styles.link}>youremail@example.com</a></p>
+    <Box sx={BackgroundStyle}>
+      <Container maxWidth="lg">
+        <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={5}>
+              <Box sx={{ p: { xs: 2, sm: 4 } }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: '#08306b', mb: 1 }}>Get in Touch</Typography>
+                <Typography sx={{ color: 'rgba(8,48,107,0.7)', mb: 2 }}>I'd love to hear from you! Whether you have a question or just want to say hi, feel free to drop a message.</Typography>
 
-            <div style={styles.social}>
-              <a href="#" style={styles.socialIcon}>🌐</a>
-              <a href="#" style={styles.socialIcon}>📘</a>
-              <a href="#" style={styles.socialIcon}>📸</a>
-              <a href="#" style={styles.socialIcon}>🔗</a>
-            </div>
-          </div>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                  <Avatar sx={{ bgcolor: '#dff6ff', color: '#08306b' }}>📧</Avatar>
+                  <Typography sx={{ color: 'rgba(8,48,107,0.7)' }}>youremail@example.com</Typography>
+                </Box>
 
-          {/* Right - Form */}
-          <div style={styles.right}>
-            <form onSubmit={handleSubmit} style={styles.form}>
-              <div style={styles.row}>
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  style={styles.input}
-                />
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  style={styles.input}
-                />
-              </div>
+                <Box sx={{ display: 'flex', gap: 2, mt: 3, fontSize: 22 }}>
+                  <a href="#" style={{ color: '#1e88e5', textDecoration: 'none' }}>🌐</a>
+                  <a href="#" style={{ color: '#1e88e5', textDecoration: 'none' }}>📘</a>
+                  <a href="#" style={{ color: '#1e88e5', textDecoration: 'none' }}>📸</a>
+                  <a href="#" style={{ color: '#1e88e5', textDecoration: 'none' }}>🔗</a>
+                </Box>
+              </Box>
+            </Grid>
 
-              <input
-                type="email"
-                name="email"
-                placeholder="Email *"
-                value={formData.email}
-                onChange={handleChange}
-                style={styles.inputFull}
-              />
+            <Grid item xs={12} md={7}>
+              <Box sx={{ p: { xs: 2, sm: 3 }, background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,252,255,0.98))', borderRadius: 2, boxShadow: '0 10px 36px rgba(16,81,139,0.06)' }}>
+                <form onSubmit={handleSubmit}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        name="firstName"
+                        label="First Name"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                        sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1 }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        name="lastName"
+                        label="Last Name"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                        sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1 }}
+                      />
+                    </Grid>
 
-              <textarea
-                name="message"
-                placeholder="Message"
-                value={formData.message}
-                onChange={handleChange}
-                style={styles.textarea}
-              />
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        name="email"
+                        label="Email *"
+                        value={formData.email}
+                        onChange={handleChange}
+                        error={!!errors.email}
+                        helperText={errors.email}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                        sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1 }}
+                      />
+                    </Grid>
 
-              <button type="submit" style={styles.button}>
-                Send Message
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        name="phone"
+                        label="Phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                        sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        name="message"
+                        label="Message *"
+                        value={formData.message}
+                        onChange={handleChange}
+                        error={!!errors.message}
+                        helperText={errors.message}
+                        multiline
+                        rows={5}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><MessageIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                        sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button type="submit" variant="contained" endIcon={<SendIcon />} sx={{ background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)', color: '#08306b', fontWeight: 700, padding: '12px 20px', borderRadius: 2 }}>Send Message</Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </form>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </Container>
+
+      <Snackbar open={open} autoHideDuration={3000} onClose={() => setOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="success" sx={{ width: '100%' }} onClose={() => setOpen(false)}>Message sent — we will get back to you shortly.</Alert>
+      </Snackbar>
+    </Box>
   );
 }
-
-const styles = {
-  wrapper: {
-    backgroundImage: `url("https://media.newyorker.com/photos/6840685fa1c48a5b75175724/master/w_960,c_limit/MosabAbuToha_WhatGazaNeeds.jpg")`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    minHeight: "100vh",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-  },
-  overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    padding: "60px 20px",
-    minHeight: "100vh",
-    color: "#fff",
-  },
-  container: {
-    display: "flex",
-    maxWidth: "1000px",
-    margin: "0 auto",
-    gap: "40px",
-    flexWrap: "wrap",
-  },
-  left: {
-    flex: 1,
-    minWidth: "280px",
-  },
-  right: {
-    flex: 1,
-    minWidth: "280px",
-    backgroundColor: "#ffffffcc",
-    padding: "30px",
-    borderRadius: "10px",
-    color: "#000",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-  },
-  title: {
-    fontSize: "2.5em",
-    marginBottom: "10px",
-  },
-  paragraph: {
-    marginBottom: "10px",
-    lineHeight: "1.6",
-  },
-  email: {
-    marginTop: "20px",
-  },
-  link: {
-    color: "#ffd700",
-    textDecoration: "none",
-  },
-  social: {
-    display: "flex",
-    gap: "15px",
-    fontSize: "24px",
-    marginTop: "15px",
-  },
-  socialIcon: {
-    color: "#fff",
-    textDecoration: "none",
-    transition: "transform 0.2s",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  row: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "10px",
-  },
-  input: {
-    flex: 1,
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  inputFull: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    marginBottom: "10px",
-  },
-  textarea: {
-    padding: "10px",
-    height: "100px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    marginBottom: "10px",
-  },
-  button: {
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: "12px",
-    border: "none",
-    borderRadius: "5px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    transition: "background 0.3s",
-  },
-};
-//hai
-
-export default Contactt;
