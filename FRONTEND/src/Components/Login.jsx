@@ -2,6 +2,7 @@ import { Box, Button, TextField, Typography, Avatar } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import bgImage from "./Uploads/image.jpg";
 
 const Login = () => {
   const [input, setInput] = useState({});
@@ -53,7 +54,8 @@ const Login = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("https://mkt.cdnpk.net/web-app/media/freepik-15-2000.webp")`,
+       
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${bgImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         fontFamily: "'Poppins', sans-serif",
