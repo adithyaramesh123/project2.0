@@ -64,7 +64,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
   }
 
   const handleScroll = (id) => {
-    // If already on home, scroll immediately; otherwise navigate then scroll after a short delay
+    // If already on home, scroll immediatelyy; otherwise navigate then scroll after a short delay
     if (location.pathname === '/') {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
