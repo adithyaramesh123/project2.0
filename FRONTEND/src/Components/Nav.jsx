@@ -56,7 +56,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
       <>
         <Button onClick={() => handleScroll('mission')} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700, '&:hover': { color: '#bfe6ff' } }}>Our Mission</Button>
         <Button onClick={() => handleScroll('impact')} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700, '&:hover': { color: '#bfe6ff' } }}>Impact</Button>
-        <Button onClick={() => handleScroll('solutions')} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700, '&:hover': { color: '#bfe6ff' } }}>Solutions</Button>
         <Button onClick={() => handleScroll('get-involved')} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700, '&:hover': { color: '#bfe6ff' } }}>Get Involved</Button>
         <Button component={Link} to={'/about'} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700 }}>About</Button>
         <Button component={Link} to={'/c'} sx={{ color: 'white', textTransform: 'uppercase', fontSize: 13, fontWeight: 700 }}>Contact</Button>

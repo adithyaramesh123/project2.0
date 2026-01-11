@@ -1,4 +1,4 @@
-import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar } from '@mui/material';
+import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,29 +17,40 @@ const BackgroundStyle = {
 };
 
 const Signup = () => {
-    // Note: Corrected var to const
-    const [input, setInput] = useState({});
+    const [input, setInput] = useState({ fname: '', ename: '', password: '', dob: '', mobile: '', address: '', pincode: '', city: '', state: '', country: 'INDIA' });
+    const [loadingPin, setLoadingPin] = useState(false);
     const baseurl = import.meta.env.VITE_API_BASE_URL;
-    const navigate = useNavigate(); // Corrected capitalization from 'Navigate' to 'navigate'nn
+    const navigate = useNavigate();
 
-    const inputHandler = (e) => {
-        // console.log(e.target.value); // Keep console logs clean for production
-        setInput({ ...input, [e.target.name]: e.target.value });
-        // console.log(input);
+    const inputHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
+
+    const fetchPincode = async (pin) => {
+        if (!pin || pin.toString().length < 6) return;
+        setLoadingPin(true);
+        try {
+            const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+            const data = await res.json();
+            if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length) {
+                const po = data[0].PostOffice[0];
+                setInput(prev => ({ ...prev, city: po.District || prev.city, state: po.State || prev.state, country: po.Country || prev.country }));
+            }
+        } catch (err) {
+            console.warn('Pincode lookup failed', err);
+        } finally {
+            setLoadingPin(false);
+        }
     };
 
-    const addHandler = () => {
-        console.log("Attempting sign up...");
-        axios.post(`${baseurl}/api`, input)
-            .then((res) => {
-                console.log(res);
-                alert(res.data.message);
-                navigate('/L'); // Redirect to login page on success
-            })
-            .catch((err) => {
-                console.log(err);
-                alert("Sign-up failed. Please check your network and try again.");
-            });
+    const addHandler = async () => {
+        if (!input.fname || !input.ename || !input.password) return alert('Please complete required fields (name, email, password)');
+        try {
+            const res = await axios.post(`${baseurl}/api`, input);
+            alert(res.data?.message || 'Signed up successfully');
+            navigate('/L');
+        } catch (err) {
+            console.error('Signup failed', err);
+            alert('Sign-up failed. Please check your network and try again.');
+        }
     };
 
     return (
@@ -99,68 +110,49 @@ const Signup = () => {
                         "The best way to find yourself is to lose yourself in the service of others."
                     </Typography>
 
-                    {/* Input Fields */}
-                    <TextField
-                        fullWidth
-                        label="Full name"
-                        variant="outlined"
-                        name="fname"
-                        onChange={inputHandler}
-                        margin="normal"
-                        sx={{
-                            marginBottom: "16px",
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                                "&.Mui-focused fieldset": { borderColor: "#fff" },
-                            },
-                            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
-                            "& .MuiInputBase-input": { color: "#fff" },
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Email id"
-                        variant="outlined"
-                        name="ename"
-                        onChange={inputHandler}
-                        margin="normal"
-                        sx={{
-                            marginBottom: "16px",
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                                "&.Mui-focused fieldset": { borderColor: "#fff" },
-                            },
-                            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
-                            "& .MuiInputBase-input": { color: "#fff" },
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Password"
-                        variant="outlined"
-                        name="password"
-                        type="password"
-                        onChange={inputHandler}
-                        margin="normal"
-                        sx={{
-                            marginBottom: "16px",
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                                "&.Mui-focused fieldset": { borderColor: "#fff" },
-                            },
-                            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
-                            "& .MuiInputBase-input": { color: "#fff" },
-                        }}
-                    />
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={8}>
+                            <TextField fullWidth label="Full Name *" name="fname" value={input.fname} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }} />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="Date of Birth" name="dob" value={input.dob} onChange={inputHandler} type="date" size="small" InputLabelProps={{ shrink: true, style: { color: 'rgba(255,255,255,0.7)' } }} sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Email *" name="ename" value={input.ename} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Mobile Number *" name="mobile" value={input.mobile} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <TextField fullWidth label="Address" name="address" value={input.address} onChange={inputHandler} multiline rows={2} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+
+                        <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="Pincode" name="pincode" value={input.pincode} onChange={(e) => { inputHandler(e); if (e.target.value.length >= 6) fetchPincode(e.target.value); }} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} helperText={loadingPin ? 'Looking up pincode...' : ''} />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="City" name="city" value={input.city} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="State" name="state" value={input.state} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Country</InputLabel>
+                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} sx={{ bgcolor: 'rgba(255,255,255,0.03)', color: '#fff' }}>
+                                    <MenuItem value="INDIA">INDIA</MenuItem>
+                                    <MenuItem value="OTHER">OTHER</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Password *" name="password" value={input.password} onChange={inputHandler} type="password" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                        </Grid>
+                    </Grid>
 
                     {/* Sign Up Button */}
                     <Button

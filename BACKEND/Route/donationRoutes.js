@@ -327,11 +327,39 @@ router.get("/admin/recent-donations", async (_req, res) => {
 ============================================================ */
 router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
   try {
-    const unassigned = await Donation.find({ type: 'Item', status: 'Approved', organization: null }).sort({ createdAt: -1 });
+    // Include donations that are fully approved or partially assigned (have remaining items)
+    const unassigned = await Donation.find({ type: 'Item', status: { $in: ['Approved','PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
     res.json(unassigned);
   } catch (err) {
     console.error('Unassigned items fetch error', err);
     res.status(500).json({ error: 'Failed to fetch unassigned items' });
+  }
+});
+
+// GET /api/donations/admin/unassigned-item-lines
+// Returns a flattened list of item lines (donationId + itemIndex + name + available quantity)
+router.get('/admin/unassigned-item-lines', adminAuth, async (_req, res) => {
+  try {
+    // Include donations that are Approved or PartiallyAssigned so remaining items are visible
+    const donations = await Donation.find({ type: 'Item', status: { $in: ['Approved','PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
+    const lines = [];
+    donations.forEach(d => {
+      (d.itemDetails || []).forEach((it, idx) => {
+        if (!it || !it.quantity || it.quantity <= 0) return;
+        lines.push({
+          donationId: d._id,
+          donationShort: String(d._id).substring(0,8),
+          itemIndex: idx,
+          name: it.name,
+          quantity: it.quantity,
+          createdAt: d.createdAt,
+        });
+      });
+    });
+    res.json(lines);
+  } catch (err) {
+    console.error('Unassigned item lines fetch error', err);
+    res.status(500).json({ error: 'Failed to fetch unassigned item lines' });
   }
 });
 

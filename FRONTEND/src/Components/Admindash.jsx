@@ -941,8 +941,9 @@ function AdminRequestsPage() {
     const [loading, setLoading] = useState(true);
     const [openAssign, setOpenAssign] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [unassignedDonations, setUnassignedDonations] = useState([]);
-    const [pickedDonation, setPickedDonation] = useState('');
+    const [unassignedDonations, setUnassignedDonations] = useState([]); // flattened item-lines
+    const [pickedDonation, setPickedDonation] = useState(''); // stores 'donationId:itemIndex'
+    const [assignQuantity, setAssignQuantity] = useState(1);
     const [processing, setProcessing] = useState(false);
     const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
 
@@ -976,10 +977,10 @@ function AdminRequestsPage() {
     const fetchUnassignedDonations = async () => {
         try {
             const token = getToken();
-            const res = await axios.get('/api/donations/admin/unassigned-items', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.get('/api/donations/admin/unassigned-item-lines', { headers: { Authorization: `Bearer ${token}` } });
             setUnassignedDonations(res.data);
         } catch (err) {
-            console.error('Fetch unassigned donations failed', err);
+            console.error('Fetch unassigned item lines failed', err);
             setUnassignedDonations([]);
         }
     };
@@ -987,12 +988,15 @@ function AdminRequestsPage() {
     const openAssignDialog = async (request) => {
         setSelectedRequest(request);
         await fetchUnassignedDonations();
+        setPickedDonation('');
+        setAssignQuantity(1);
         setOpenAssign(true);
     };
 
     const closeAssignDialog = () => {
         setOpenAssign(false);
         setPickedDonation('');
+        setAssignQuantity(1);
         setSelectedRequest(null);
     };
 
@@ -1001,14 +1005,15 @@ function AdminRequestsPage() {
         setProcessing(true);
         try {
             const token = getToken();
-            await axios.patch(`/api/admin/requests/assign-donation/${selectedRequest._id}`, { donationId: pickedDonation }, { headers: { Authorization: `Bearer ${token}` } });
+            const [donationId, itemIndex] = pickedDonation.split(':');
+            await axios.patch(`/api/admin/requests/assign-item/${selectedRequest._id}`, { donationId, itemIndex: Number(itemIndex), quantity: Number(assignQuantity) }, { headers: { Authorization: `Bearer ${token}` } });
             setProcessing(false);
             closeAssignDialog();
             fetchRequests();
             window.dispatchEvent(new Event('donationUpdated'));
-            setSnack({ open: true, message: 'Assigned donation to request.', severity: 'success' });
+            setSnack({ open: true, message: 'Assigned donation item to request.', severity: 'success' });
         } catch (err) {
-            console.error('Assign donation to request error', err);
+            console.error('Assign item to request error', err);
             setProcessing(false);
             setSnack({ open: true, message: 'Assignment failed', severity: 'error' });
         }
@@ -1086,12 +1091,47 @@ function AdminRequestsPage() {
             <Dialog open={openAssign} onClose={closeAssignDialog} fullWidth maxWidth="md">
                 <DialogTitle>Assign Donation to Request</DialogTitle>
                 <DialogContent>
-                    {unassignedDonations.length === 0 ? (<Typography>No unassigned item donations available</Typography>) : (
-                        <RadioGroup value={pickedDonation} onChange={(e) => setPickedDonation(e.target.value)}>
-                            {unassignedDonations.map(d => (
-                                <FormControlLabel key={d._id} value={d._id} control={<Radio />} label={`${d._id.substring(0,8)} - ${d.itemDetails?.map(it => it.name).join(', ') || (d.itemDetails?.length + ' items')} - ${d?.createdAt ? new Date(d.createdAt).toLocaleDateString() : 'Unknown'}`} />
-                            ))}
-                        </RadioGroup>
+                    {unassignedDonations.length === 0 ? (
+                        <Typography>No unassigned item donations available</Typography>
+                    ) : (
+                        <>
+                            <RadioGroup value={pickedDonation} onChange={(e) => {
+                                const val = e.target.value;
+                                setPickedDonation(val);
+                                // set default quantity to available for the selected line
+                                const [donationId, idx] = val.split(':');
+                                const line = unassignedDonations.find(l => String(l.donationId) === donationId && String(l.itemIndex) === idx);
+                                setAssignQuantity(line ? Math.max(1, Math.min(line.quantity, line.quantity)) : 1);
+                            }}>
+                                {unassignedDonations.map((line, i) => (
+                                    <FormControlLabel 
+                                        key={`${line.donationId}-${line.itemIndex}-${i}`} 
+                                        value={`${line.donationId}:${line.itemIndex}`} 
+                                        control={<Radio />} 
+                                        label={`${line.donationShort} - ${line.name} (qty: ${line.quantity}) - ${line.createdAt ? new Date(line.createdAt).toLocaleDateString() : 'Unknown'}`} 
+                                    />
+                                ))}
+                            </RadioGroup>
+
+                            <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <TextField
+                                    label="Quantity to assign"
+                                    size="small"
+                                    type="number"
+                                    value={assignQuantity}
+                                    onChange={(e) => {
+                                        const val = Math.max(1, Number(e.target.value || 1));
+                                        // cap at selected line quantity
+                                        if (!pickedDonation) return setAssignQuantity(val);
+                                        const [donationId, idx] = pickedDonation.split(':');
+                                        const line = unassignedDonations.find(l => String(l.donationId) === donationId && String(l.itemIndex) === idx);
+                                        if (line) setAssignQuantity(Math.min(val, line.quantity));
+                                        else setAssignQuantity(val);
+                                    }}
+                                    InputProps={{ inputProps: { min: 1 } }}
+                                />
+                            </Box>
+                        </>
                     )}
                 </DialogContent>
                 <DialogActions>

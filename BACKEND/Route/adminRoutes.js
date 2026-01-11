@@ -153,7 +153,7 @@ router.patch('/requests/status/:id', auth, async (req, res) => {
   }
 });
 
-// PATCH /api/admin/requests/assign-donation/:requestId - assign a donation to a request
+// PATCH /api/admin/requests/assign-donation/:requestId - assign a donation to a request (whole donation)
 router.patch('/requests/assign-donation/:requestId', auth, async (req, res) => {
   try {
     const { donationId } = req.body;
@@ -180,6 +180,76 @@ router.patch('/requests/assign-donation/:requestId', auth, async (req, res) => {
   } catch (err) {
     console.error('Assign donation to request error', err);
     res.status(500).json({ error: 'Failed to assign donation to request' });
+  }
+});
+
+// PATCH /api/admin/requests/assign-item/:requestId - assign specific item(s) from a donation to a request
+router.patch('/requests/assign-item/:requestId', auth, async (req, res) => {
+  try {
+    const { donationId, itemIndex, quantity } = req.body;
+    if (!donationId) return res.status(400).json({ error: 'donationId is required' });
+    if (typeof itemIndex !== 'number') return res.status(400).json({ error: 'itemIndex (number) is required' });
+    const qty = Number(quantity) || 0;
+    if (!qty || qty <= 0) return res.status(400).json({ error: 'quantity must be a positive number' });
+
+    const request = await OrganizationRequest.findById(req.params.requestId);
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+
+    const donation = await Donation.findById(donationId);
+    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    if (donation.type !== 'Item') return res.status(400).json({ error: 'Donation must be an item type' });
+    if (!donation.status || !['Approved','PartiallyAssigned'].includes(donation.status)) return res.status(400).json({ error: 'Donation must be Approved to assign items' });
+
+    const item = donation.itemDetails && donation.itemDetails[itemIndex];
+    if (!item) return res.status(400).json({ error: 'Item not found at provided index' });
+    if (item.quantity < qty) return res.status(400).json({ error: 'Not enough quantity available in donation' });
+
+    // Capture item name BEFORE mutating the donation
+    const itemName = item.name;
+
+    // Deduct quantity from donation item
+    item.quantity -= qty;
+    // If quantity goes to zero, remove the item
+    if (item.quantity <= 0) donation.itemDetails.splice(itemIndex, 1);
+
+    // Update donation status
+    if (!donation.itemDetails || donation.itemDetails.length === 0) {
+      donation.status = 'Assigned';
+    } else {
+      donation.status = 'PartiallyAssigned';
+    }
+
+    await donation.save();
+
+    // Add assignedItems entry to request
+    request.assignedItems = request.assignedItems || [];
+    request.assignedItems.push({ donationId: donation._id, name: req.body.name || itemName, quantity: qty });
+
+    // Determine whether the request is fully satisfied or partially
+    const needed = {};
+    (request.items || []).forEach(it => { needed[it.name] = (needed[it.name] || 0) + it.quantity; });
+    const assigned = {};
+    (request.assignedItems || []).forEach(it => { assigned[it.name] = (assigned[it.name] || 0) + it.quantity; });
+
+    let allSatisfied = true;
+    let anyAssigned = false;
+    for (const name of Object.keys(needed)) {
+      const needQty = needed[name] || 0;
+      const assignedQty = assigned[name] || 0;
+      if (assignedQty > 0) anyAssigned = true;
+      if (assignedQty < needQty) allSatisfied = false;
+    }
+    if (!anyAssigned) {
+      // no change
+    } else if (allSatisfied) request.status = 'Assigned';
+    else request.status = 'PartiallyAssigned';
+
+    await request.save();
+
+    res.json({ success: true, request, donation });
+  } catch (err) {
+    console.error('Assign item to request error', err);
+    res.status(500).json({ error: 'Failed to assign item to request' });
   }
 });
 
