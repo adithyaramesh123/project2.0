@@ -1,13 +1,25 @@
-import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem, InputAdornment, IconButton, FormHelperText, Stack } from '@mui/material';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Custom style for the background (Replace with your actual image URL)
+// Icons for modern inputs
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import LockIcon from '@mui/icons-material/Lock';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import PhoneIcon from '@mui/icons-material/Phone';
+import HomeIcon from '@mui/icons-material/Home';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+
+// Custom background using a pastel-blue palette
 const BackgroundStyle = {
-    backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80")`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
+    backgroundSize: 'cover, 100% 60px',
+    backgroundPosition: 'center, bottom',
+    backgroundRepeat: 'no-repeat, no-repeat',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
@@ -19,10 +31,34 @@ const BackgroundStyle = {
 const Signup = () => {
     const [input, setInput] = useState({ fname: '', ename: '', password: '', dob: '', mobile: '', address: '', pincode: '', city: '', state: '', country: 'INDIA' });
     const [loadingPin, setLoadingPin] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState({});
+
     const baseurl = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
 
-    const inputHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
+    const toggleShowPassword = () => setShowPassword((s) => !s);
+
+    const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+    const validateField = (name, value) => {
+        let msg = '';
+        if ((name === 'fname' || name === 'ename' || name === 'password') && !value) msg = 'Required';
+        if (name === 'ename' && value && !validateEmail(value)) msg = 'Invalid email';
+        if (name === 'password' && value && value.length < 6) msg = 'Use at least 6 characters';
+        setErrors(prev => {
+            const copy = { ...prev };
+            if (msg) copy[name] = msg; else delete copy[name];
+            return copy;
+        });
+    };
+
+    const inputHandler = (e) => {
+        const { name, value } = e.target;
+        setInput((prev) => ({ ...prev, [name]: value }));
+        if (['fname','ename','password','pincode'].includes(name)) validateField(name, value);
+        if (name === 'pincode' && value && value.length >= 6) fetchPincode(value);
+    }; 
 
     const fetchPincode = async (pin) => {
         if (!pin || pin.toString().length < 6) return;
@@ -58,91 +94,131 @@ const Signup = () => {
             <Container maxWidth="sm">
                 <Box
                     sx={{
-                        width: { xs: '90%', sm: 400 },
+                        width: { xs: '92%', sm: 520 },
                         margin: '0 auto',
-                        padding: '40px 32px',
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        borderRadius: '20px',
-                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-                        textAlign: 'center',
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
-                        backdropFilter: "blur(10px)",
-                        position: "relative",
-                        "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
-                            borderRadius: "20px",
-                            zIndex: -1,
-                        },
+                        padding: { xs: '24px', sm: '36px' },
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,252,255,0.98))',
+                        borderRadius: '14px',
+                        boxShadow: '0 8px 30px rgba(16,81,139,0.06)',
+                        color: '#08306b',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(30,120,200,0.08)'
                     }}
                 >
-                    <Avatar
-                        sx={{
-                            width: 80,
-                            height: 80,
-                            mx: "auto",
-                            mb: 2,
-                            bgcolor: "rgba(255,255,255,0.2)",
-                            fontSize: "2rem",
-                        }}
-                    >
-                        👤
-                    </Avatar>
-
-                    <Typography variant='h4'
-                        sx={{
-                            fontWeight: 700,
-                            color: "#fff",
-                            letterSpacing: "-0.5px",
-                            marginBottom: "8px",
-                            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                            mb: 1
-                        }}>
-                        Join Helping Hands
-                    </Typography>
-
-                    <Typography variant='subtitle1' sx={{ color: "rgba(255,255,255,0.8)", mb: 3, fontSize: "16px" }}>
-                        "The best way to find yourself is to lose yourself in the service of others."
-                    </Typography>
+                
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar sx={{ width: 64, height: 64, bgcolor: '#dff6ff', color: '#08306b', fontSize: '1.8rem' }}>🤝</Avatar>
+                        <Box>
+                            <Typography variant='h4' sx={{ fontWeight: 700, color: '#08306b' }}>Join Helping Hands</Typography>
+                            <Typography variant='body2' sx={{ color: 'rgba(8,48,107,0.65)' }}>
+                                The best way to find yourself is to lose yourself in the service of others.
+                            </Typography>
+                        </Box>
+                    </Box>
 
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={8}>
-                            <TextField fullWidth label="Full Name *" name="fname" value={input.fname} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Full Name *"
+                                name="fname"
+                                value={input.fname}
+                                onChange={inputHandler}
+                                size="small"
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                error={!!errors.fname}
+                                helperText={errors.fname}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="Date of Birth" name="dob" value={input.dob} onChange={inputHandler} type="date" size="small" InputLabelProps={{ shrink: true, style: { color: 'rgba(255,255,255,0.7)' } }} sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Date of Birth"
+                                name="dob"
+                                value={input.dob}
+                                onChange={inputHandler}
+                                type="date"
+                                size="small"
+                                InputLabelProps={{ shrink: true }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><CalendarTodayIcon fontSize="small" sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
-                            <TextField fullWidth label="Email *" name="ename" value={input.ename} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Email *"
+                                name="ename"
+                                value={input.ename}
+                                onChange={inputHandler}
+                                size="small"
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                error={!!errors.ename}
+                                helperText={errors.ename}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField fullWidth label="Mobile Number *" name="mobile" value={input.mobile} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Mobile Number"
+                                name="mobile"
+                                value={input.mobile}
+                                onChange={inputHandler}
+                                size="small"
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
 
                         <Grid item xs={12}>
-                            <TextField fullWidth label="Address" name="address" value={input.address} onChange={inputHandler} multiline rows={2} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Address"
+                                name="address"
+                                value={input.address}
+                                onChange={inputHandler}
+                                multiline
+                                rows={2}
+                                size="small"
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><HomeIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
 
                         <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="Pincode" name="pincode" value={input.pincode} onChange={(e) => { inputHandler(e); if (e.target.value.length >= 6) fetchPincode(e.target.value); }} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} helperText={loadingPin ? 'Looking up pincode...' : ''} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Pincode"
+                                name="pincode"
+                                value={input.pincode}
+                                onChange={(e) => { inputHandler(e); if (e.target.value.length >= 6) fetchPincode(e.target.value); }}
+                                size="small"
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><LocationOnIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                helperText={loadingPin ? 'Looking up pincode...' : ''}
+                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                            />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="City" name="city" value={input.city} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField variant="outlined" fullWidth label="City" name="city" value={input.city} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="State" name="state" value={input.state} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField variant="outlined" fullWidth label="State" name="state" value={input.state} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth size="small">
-                                <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Country</InputLabel>
-                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} sx={{ bgcolor: 'rgba(255,255,255,0.03)', color: '#fff' }}>
+                                <InputLabel sx={{ color: 'rgba(255,255,255,0.85)' }}>Country</InputLabel>
+                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}>
                                     <MenuItem value="INDIA">INDIA</MenuItem>
                                     <MenuItem value="OTHER">OTHER</MenuItem>
                                 </Select>
@@ -150,51 +226,50 @@ const Signup = () => {
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
-                            <TextField fullWidth label="Password *" name="password" value={input.password} onChange={inputHandler} type="password" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }} />
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                label="Password *"
+                                name="password"
+                                value={input.password}
+                                onChange={inputHandler}
+                                type={showPassword ? 'text' : 'password'}
+                                size="small"
+                                InputProps={{
+                                    startAdornment: (<InputAdornment position="start"><LockIcon /></InputAdornment>),
+                                    endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: '#fff' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
+                                }}
+                                error={!!errors.password}
+                                helperText={errors.password}
+                                sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }}
+                            />
                         </Grid>
                     </Grid>
 
-                    {/* Sign Up Button */}
                     <Button
                         onClick={addHandler}
+                        disabled={!input.fname || !input.ename || !input.password || Object.keys(errors).length > 0}
                         variant="contained"
                         fullWidth
                         size="large"
                         sx={{
                             mt: 3,
-                            mb: 2,
+                            mb: 1.5,
                             py: 1.5,
                             fontWeight: 700,
-                            backgroundColor: "#fff",
-                            color: "#000",
-                            borderRadius: "12px",
-                            textTransform: "none",
-                            fontSize: "16px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                backgroundColor: "rgba(255,255,255,0.9)",
-                                boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
-                            },
-                        }}
+                            borderRadius: '10px',
+                            background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)',
+                            color: '#08306b',
+                            boxShadow: '0 8px 20px rgba(16,81,139,0.06)',
+                            textTransform: 'none',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 28px rgba(16,81,139,0.08)' }
+                        }} 
                     >
                         Sign Up
                     </Button>
-                    
-                    {/* Login Link */}
-                    <Typography variant='body2' align='center' sx={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}>
-                        Already a user?{" "}
-                        <MuiLink
-                            component="button"
-                            onClick={() => navigate('/L')}
-                            sx={{
-                                color: "#fff",
-                                fontWeight: 600,
-                                textDecoration: "none",
-                                "&:hover": { textDecoration: "underline" },
-                            }}
-                        >
-                            Login here
-                        </MuiLink>
+
+                    <Typography variant='body2' align='center' sx={{ color: 'rgba(8,48,107,0.7)', mt: 1 }}>
+                        Already a user? <MuiLink component="button" onClick={() => navigate('/L')} sx={{ color: '#1e88e5', fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Login here</MuiLink>
                     </Typography>
 
                 </Box>

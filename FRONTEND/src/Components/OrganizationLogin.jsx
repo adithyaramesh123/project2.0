@@ -1,15 +1,55 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Alert,Avatar } from '@mui/material';
+import { Box, Button, TextField, Typography, Alert, Avatar, InputAdornment, IconButton } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const OrganizationLogin = () => {
+// Icons
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
+// Pastel-blue page background (matches Signup)
+const BackgroundStyle = {
+    backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
+    backgroundSize: 'cover, 100% 60px',
+    backgroundPosition: 'center, bottom',
+    backgroundRepeat: 'no-repeat, no-repeat',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px 0',
+    fontFamily: "'Poppins', sans-serif",
+};
+
+const OrganizationLogin = () => { 
     const [input, setInput] = useState({ contactEmail: '', password: '' });
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const baseurl = import.meta.env.VITE_API_BASE_URL;
 
-    const onChange = (e) => setInput(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+    const validateField = (name, value) => {
+        let msg = '';
+        if ((name === 'contactEmail' || name === 'password') && !value) msg = 'Required';
+        if (name === 'contactEmail' && value && !validateEmail(value)) msg = 'Invalid email';
+        setErrors(prev => {
+            const copy = { ...prev };
+            if (msg) copy[name] = msg; else delete copy[name];
+            return copy;
+        });
+    };
+
+    const onChange = (e) => {
+        const { name, value } = e.target;
+        setInput(prev => ({ ...prev, [name]: value }));
+        if (name === 'contactEmail' || name === 'password') validateField(name, value);
+    };
+
+    const toggleShowPassword = () => setShowPassword((s) => !s);
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -33,82 +73,31 @@ const OrganizationLogin = () => {
     };
 
     return (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "100vh",
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                fontFamily: "'Poppins', sans-serif",
-            }}
-        >
+        <Box sx={BackgroundStyle}>
+            
             <Box
                 sx={{
-                    width: { xs: 350, sm: 420 },
-                    padding: "40px 32px",
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    borderRadius: "20px",
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-                    textAlign: "center",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    backdropFilter: "blur(10px)",
-                    position: "relative",
-                    "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
-                        borderRadius: "20px",
-                        zIndex: -1,
-                    },
+                    width: { xs: '94%', sm: 720, md: 900 },
+                    maxWidth: 1100,
+                    padding: { xs: '28px', sm: '48px' },
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,252,255,0.98))',
+                    borderRadius: '16px',
+                    boxShadow: '0 14px 48px rgba(16,81,139,0.08)',
+                    textAlign: 'center',
+                    border: '1px solid rgba(30,120,200,0.08)',
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}
             >
-                <Avatar
-                    sx={{
-                        width: 80,
-                        height: 80,
-                        mx: "auto",
-                        mb: 2,
-                        bgcolor: "rgba(255,255,255,0.2)",
-                        fontSize: "2rem",
-                    }}
-                >
-                    🏢
-                </Avatar>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, justifyContent: 'center' }}>
+                    <Avatar sx={{ width: 96, height: 96, bgcolor: '#dff6ff', color: '#08306b', fontSize: '2.2rem' }}>🏢</Avatar>
+                    <Box>
+                        <Typography variant="h3" sx={{ fontWeight: 800, color: '#08306b', fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>Organization Portal</Typography>
+                        <Typography variant="body1" sx={{ color: 'rgba(8,48,107,0.65)', fontSize: 16 }}>Login to your organization account</Typography>
+                    </Box>
+                </Box>
 
-                <Typography
-                    variant="h4"
-                    gutterBottom
-                    sx={{
-                        fontWeight: 700,
-                        color: "#fff",
-                        letterSpacing: "-0.5px",
-                        marginBottom: "8px",
-                        textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                    }}
-                >
-                    Organization Portal
-                </Typography>
-
-                <Typography
-                    variant="subtitle1"
-                    gutterBottom
-                    sx={{
-                        color: "rgba(255,255,255,0.8)",
-                        marginBottom: 4,
-                        fontSize: "16px",
-                    }}
-                >
-                    Login to your organization account
-                </Typography>
-
-                {error && <Alert severity="error" sx={{ mb: 2, backgroundColor: "rgba(255,0,0,0.1)", color: "#fff" }}>{error}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 2, backgroundColor: "rgba(255,235,238,0.95)", color: "#6b0d0d" }}>{error}</Alert>}
                 <form onSubmit={onSubmit}>
                     <TextField
                         fullWidth
@@ -116,63 +105,71 @@ const OrganizationLogin = () => {
                         name="contactEmail"
                         value={input.contactEmail}
                         onChange={onChange}
+                        error={!!errors.contactEmail}
+                        helperText={errors.contactEmail}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
                         sx={{
                             mb: 2,
                             "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                                "&.Mui-focused fieldset": { borderColor: "#fff" },
+                                borderRadius: "10px",
+                                backgroundColor: "rgba(246,251,255,0.95)",
+                                "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
+                                "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
+                                "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
                             },
-                            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
-                            "& .MuiInputBase-input": { color: "#fff" },
+                            "& .MuiInputLabel-root": { color: "rgba(8,48,107,0.6)" },
+                            "& .MuiInputBase-input": { color: "#08306b" },
                         }}
                     />
                     <TextField
                         fullWidth
                         label="Password"
                         name="password"
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={input.password}
                         onChange={onChange}
+                        error={!!errors.password}
+                        helperText={errors.password}
+                        InputProps={{
+                            startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: '#1976d2' }} /></InputAdornment>),
+                            endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: '#1976d2' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
+                        }}
                         sx={{
                             mb: 2,
                             "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255,255,255,0.1)",
-                                "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                                "&.Mui-focused fieldset": { borderColor: "#fff" },
+                                borderRadius: "10px",
+                                backgroundColor: "rgba(246,251,255,0.95)",
+                                "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
+                                "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
+                                "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
                             },
-                            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
-                            "& .MuiInputBase-input": { color: "#fff" },
+                            "& .MuiInputLabel-root": { color: "rgba(8,48,107,0.6)" },
+                            "& .MuiInputBase-input": { color: "#08306b" },
                         }}
                     />
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
+                        disabled={!input.contactEmail || !input.password || Object.keys(errors).length > 0}
                         sx={{
-                            backgroundColor: "#fff",
-                            color: "#000",
-                            fontWeight: "600",
-                            padding: "12px",
-                            borderRadius: "12px",
-                            textTransform: "none",
-                            fontSize: "16px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                backgroundColor: "rgba(255,255,255,0.9)",
-                                boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
-                            },
+                            mt: 2,
+                            background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)',
+                            color: '#08306b',
+                            fontWeight: 800,
+                            padding: '14px',
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontSize: '18px',
+                            boxShadow: '0 10px 28px rgba(16,81,139,0.08)',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 16px 36px rgba(16,81,139,0.1)' },
                         }}
                     >
                         Login
                     </Button>
                 </form>
             </Box>
-        </div>
+        </Box>
     );
 };
 

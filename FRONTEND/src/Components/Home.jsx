@@ -75,7 +75,7 @@ export default function Home() {
             right: 0,
             bottom: 0,
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80')",
+              "url('https://images.pexels.com/photos/10629468/pexels-photo-10629468.jpeg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "blur(8px) brightness(0.4)",

@@ -139,6 +139,8 @@ import {
   Chip,
   List,
   ListItem,
+  ListItemButton,
+  ListItemIcon,
   ListItemAvatar,
   ListItemText,
   Tabs, // NEW
@@ -150,6 +152,9 @@ import {
   TableHead, // NEW
   TableRow, // NEW
   IconButton, // NEW
+  Drawer, // NEW
+  Toolbar, // NEW
+  Divider, // NEW
   Tooltip as MuiTooltip, // NEW
   Select, // NEW
   MenuItem, // NEW
@@ -159,6 +164,8 @@ import {
     ,Snackbar,Alert
     ,Dialog,DialogTitle,DialogContent,DialogActions,Radio,RadioGroup,FormControlLabel
 } from "@mui/material";
+
+import MenuIcon from '@mui/icons-material/Menu';
 
 import { DataGrid } from '@mui/x-data-grid'; // NEW for Organization Management
 
@@ -308,8 +315,8 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
 
             {/* CHARTS SECTION */}
             <Grid container spacing={3}>
-                <Grid item xs={12} md={7}>
-                    <Card sx={{ height: 380, p: 2 }}>
+                <Grid item xs={12} md={4}>
+                    {/* <Card sx={{ height: 380, p: 2 }}>
                         <Typography variant="h6" fontWeight={600}>Monthly Money Donations</Typography>
                         <ResponsiveContainer width="100%" height="90%">
                             <BarChart data={moneyData}>
@@ -319,25 +326,21 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
                                 <Bar dataKey="total" fill="#1976d2" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
-                    </Card>
+                    </Card> */}
                 </Grid>
-               
-
-
-
-<Grid item xs={12} md={5}>
-    <Card sx={{ height: 380, p: 2 }}>
-        <Typography variant="h6" fontWeight={600}>
+                <Grid item xs={12} md={8}>
+                    <Card sx={{ height: 480, p: 2 }}>
+                        <Typography variant="h6" fontWeight={600}>
             Item Donation Categories
         </Typography>
-        <ResponsiveContainer width="100%" height="90%" aspect={-5}> {/* <-- FIX APPLIED HERE */}
+        <ResponsiveContainer width="100%" height={420}>
             <PieChart>
                 <Pie
                     data={itemData}
                     cx="50%"
-                    cy="50%"
+                    cy="48%"
                     labelLine={false}
-                    outerRadius={120} // This radius is fine if the container is square
+                    outerRadius="85%"
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
@@ -349,7 +352,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>
-                <Legend />
+                <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ marginTop: 8 }} />
             </PieChart>
         </ResponsiveContainer>
     </Card>
@@ -826,6 +829,11 @@ export default function AdminDashboard() {
   const [recent, setRecent] = useState([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
+  // Sidebar responsive helpers
+  const drawerWidth = 240;
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
+
 
   const loadAllAnalyticsData = async () => {
     setLoadingAnalytics(true);
@@ -896,39 +904,72 @@ export default function AdminDashboard() {
     },
   };
 
-  return (
-    <Box sx={{ p: 4, background: "#f4f6f8", minHeight: "100vh" }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom>
-        Global Administrator Control Panel
-      </Typography>
-
-      {/* Tabs for Navigation */}
-      <Paper elevation={1} sx={{ mb: 3 }}>
-        <Tabs 
-          value={currentTab} 
-          onChange={handleChange} 
-          indicatorColor="primary" 
-          textColor="primary"
-          variant="fullWidth"
-        >
+  const drawer = (
+    <Box sx={{ width: drawerWidth }} role="presentation">
+      <Toolbar />
+      <Divider />
+      <Box sx={{ p: 2 }}>
+        <List>
           {Object.keys(TABS).map((key) => (
-            <Tab 
-                key={key} 
-                label={TABS[key].label} 
-                value={key} 
-                icon={TABS[key].icon}
-                iconPosition="start"
-                sx={{ minHeight: 64 }}
-            />
+            <ListItemButton
+              key={key}
+              selected={currentTab === key}
+              onClick={() => { setCurrentTab(key); setMobileOpen(false); }}
+              sx={{ borderRadius: 1, mb: 1 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>{TABS[key].icon}</ListItemIcon>
+              <ListItemText primary={TABS[key].label} primaryTypographyProps={{ fontWeight: 700 }} />
+            </ListItemButton>
           ))}
-        </Tabs>
-      </Paper>
-
-      {/* Render the content for the selected tab */}
-      <Box>
-        {TABS[currentTab].component}
+        </List>
       </Box>
+    </Box>
+  );
 
+  return (
+    <Box sx={{ display: 'flex', background: "#f4f6f8", minHeight: "100vh" }}>
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: 'none' } }}>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h4" fontWeight={700}>
+              Global Administrator Control Panel
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box component="nav" aria-label="admin sidebar">
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{ keepMounted: true }}
+            sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+          >
+            {drawer}
+          </Drawer>
+
+          <Drawer
+            variant="permanent"
+            sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        </Box>
+
+        <Box component="main" sx={{ flexGrow: 1, p: 4, ml: { md: `${drawerWidth}px` } }}>
+          <Box sx={{ mb: 3 }}>
+            {/* Keep the existing header spacing */}
+          </Box>
+
+          <Box>
+            {TABS[currentTab].component}
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }
