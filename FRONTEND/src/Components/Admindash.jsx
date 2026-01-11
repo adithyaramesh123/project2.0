@@ -166,6 +166,8 @@ import {
 } from "@mui/material";
 
 import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import { DataGrid } from '@mui/x-data-grid'; // NEW for Organization Management
 
@@ -831,8 +833,17 @@ export default function AdminDashboard() {
 
   // Sidebar responsive helpers
   const drawerWidth = 240;
+  const collapsedWidth = 72;
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
+  const handleSidebarToggle = () => setSidebarOpen((s) => !s);
+
+  // Broadcast sidebar state so other components (like the main Nav) can adjust
+  useEffect(() => {
+    const detail = { open: sidebarOpen, width: sidebarOpen ? drawerWidth : collapsedWidth };
+    window.dispatchEvent(new CustomEvent('adminSidebarChanged', { detail }));
+  }, [sidebarOpen]);
 
 
   const loadAllAnalyticsData = async () => {
@@ -905,21 +916,26 @@ export default function AdminDashboard() {
   };
 
   const drawer = (
-    <Box sx={{ width: drawerWidth }} role="presentation">
-      <Toolbar />
+    <Box sx={{ width: sidebarOpen ? drawerWidth : collapsedWidth, transition: 'width 225ms cubic-bezier(0,0,0.2,1)' }} role="presentation">
+      <Toolbar sx={{ display: 'flex', justifyContent: sidebarOpen ? 'flex-end' : 'center', px: 1 }}>
+        <IconButton size="small" onClick={handleSidebarToggle} sx={{ color: '#1976d2' }}>
+          {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        </IconButton>
+      </Toolbar>
       <Divider />
       <Box sx={{ p: 2 }}>
         <List>
           {Object.keys(TABS).map((key) => (
-            <ListItemButton
-              key={key}
-              selected={currentTab === key}
-              onClick={() => { setCurrentTab(key); setMobileOpen(false); }}
-              sx={{ borderRadius: 1, mb: 1 }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>{TABS[key].icon}</ListItemIcon>
-              <ListItemText primary={TABS[key].label} primaryTypographyProps={{ fontWeight: 700 }} />
-            </ListItemButton>
+            <MuiTooltip key={key} title={!sidebarOpen ? TABS[key].label : ''} placement="right" arrow>
+              <ListItemButton
+                selected={currentTab === key}
+                onClick={() => { setCurrentTab(key); setMobileOpen(false); }}
+                sx={{ borderRadius: 1, mb: 1, justifyContent: sidebarOpen ? 'flex-start' : 'center', px: sidebarOpen ? 2 : 1 }}
+              >
+                <ListItemIcon sx={{ minWidth: sidebarOpen ? 40 : 'auto', justifyContent: 'center' }}>{TABS[key].icon}</ListItemIcon>
+                {sidebarOpen && <ListItemText primary={TABS[key].label} primaryTypographyProps={{ fontWeight: 700 }} />}
+              </ListItemButton>
+            </MuiTooltip>
           ))}
         </List>
       </Box>
@@ -929,12 +945,12 @@ export default function AdminDashboard() {
   return (
     <Box sx={{ display: 'flex', background: "#f4f6f8", minHeight: "100vh" }}>
       <Box sx={{ width: '100%' }}>
-        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: { md: `${sidebarOpen ? drawerWidth : collapsedWidth}px` }, transition: 'margin 225ms cubic-bezier(0,0,0.2,1)', position: 'relative', zIndex: (theme) => theme.zIndex.drawer + 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: 'none' } }}>
               <MenuIcon />
             </IconButton>
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant="h4" fontWeight={700} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Global Administrator Control Panel
             </Typography>
           </Box>
@@ -946,21 +962,23 @@ export default function AdminDashboard() {
             open={mobileOpen}
             onClose={handleDrawerToggle}
             ModalProps={{ keepMounted: true }}
-            sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+            sx={{ display: { xs: 'block', md: 'none' }, zIndex: (theme) => theme.zIndex.drawer + 10, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+            PaperProps={{ sx: { width: drawerWidth } }}
           >
             {drawer}
           </Drawer>
 
           <Drawer
             variant="permanent"
-            sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
+            sx={{ display: { xs: 'none', md: 'block' }, zIndex: (theme) => theme.zIndex.drawer + 1, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: sidebarOpen ? drawerWidth : collapsedWidth, position: 'fixed', transition: 'width 225ms cubic-bezier(0,0,0.2,1)' } }}
             open
+            PaperProps={{ sx: { width: sidebarOpen ? drawerWidth : collapsedWidth } }}
           >
             {drawer}
           </Drawer>
         </Box>
 
-        <Box component="main" sx={{ flexGrow: 1, p: 4, ml: { md: `${drawerWidth}px` } }}>
+        <Box component="main" sx={{ flexGrow: 1, p: 4, ml: { md: `${sidebarOpen ? drawerWidth : collapsedWidth}px` }, transition: 'margin 225ms cubic-bezier(0,0,0.2,1)', minHeight: '100vh', overflow: 'auto' }}>
           <Box sx={{ mb: 3 }}>
             {/* Keep the existing header spacing */}
           </Box>

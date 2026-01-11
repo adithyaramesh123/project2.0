@@ -4,8 +4,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
  
  const Nav = () => {
     const [role,setRole] = useState(null);
-     const navigate = useNavigate();
-    const location = useLocation();
+  const [adminSidebar, setAdminSidebar] = useState({ open: false, width: 0 });
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e.detail || {};
+      setAdminSidebar({ open: !!detail.open, width: detail.width || 0 });
+    };
+    window.addEventListener('adminSidebarChanged', handler);
+    // cleanup
+    return () => window.removeEventListener('adminSidebarChanged', handler);
+  }, []);
      useEffect(()=>{
       const savedRole = sessionStorage.getItem('role');
       setRole(savedRole);
@@ -80,7 +91,17 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
   return (
     <div>
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="fixed" sx={{ background: 'linear-gradient(135deg,#0a2a4d 0%,#1e3a8a 100%)', boxShadow: '0 4px 12px rgba(2,6,23,0.2)' }}>
+        <AppBar
+          position="fixed"
+          sx={{
+            background: 'linear-gradient(135deg,#0a2a4d 0%,#1e3a8a 100%)',
+            boxShadow: '0 4px 12px rgba(2,6,23,0.2)',
+            transition: 'margin 225ms cubic-bezier(0,0,0.2,1), width 225ms cubic-bezier(0,0,0.2,1)',
+            ml: { md: location.pathname.startsWith('/admin') ? `${adminSidebar.width}px` : 0 },
+            width: { md: location.pathname.startsWith('/admin') ? `calc(100% - ${adminSidebar.width}px)` : '100%' },
+            zIndex: (theme) => theme.zIndex.appBar + 1
+          }}
+        >
           <Toolbar sx={{ display: 'flex', gap: 2 }}>
             <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}></IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, color: 'white' }}>CHANGING LIVES</Typography>
