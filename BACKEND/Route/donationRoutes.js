@@ -53,9 +53,23 @@ const User = require("../model/User");
 ============================================================ */
 router.post('/money', async (req, res) => {
   try {
-    const { amount, userId } = req.body;
+    const { amount, userId, provider, providerPaymentId } = req.body;
     if (!amount || Number(amount) <= 0) return res.status(400).json({ error: 'Invalid amount' });
 
+    // Support a dummy Stripe provider for testing (no external calls)
+    if (provider === 'stripe_dummy') {
+      const donation = new Donation({
+        userId: userId || 'testUser',
+        type: 'Money',
+        amount: Number(amount),
+        stripePaymentId: providerPaymentId || `stripe_dummy_${Date.now()}`,
+        status: 'Completed',
+      });
+      await donation.save();
+      return res.json({ success: true, donationId: donation._id });
+    }
+
+    // Fallback to existing Razorpay flow if configured
     const razorpay = getRazorpay();
     if (!razorpay) return res.status(500).json({ error: 'Razorpay not configured' });
 
@@ -71,7 +85,7 @@ router.post('/money', async (req, res) => {
 
     res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId: process.env.RAZORPAY_KEY_ID });
   } catch (err) {
-    console.error('Razorpay order creation error', err);
+    console.error('Payment order creation error', err);
     res.status(500).json({ error: 'Failed to create order' });
   }
 });
@@ -315,9 +329,27 @@ router.get("/admin/recent-donations", async (_req, res) => {
       .sort({ createdAt: -1 })
       .limit(10);
 
-    res.json(recent);
+    // Try to enrich donations with user objects when possible
+    const enriched = await Promise.all(recent.map(async (d) => {
+      const obj = d.toObject();
+      let user = null;
+      if (obj.userId) {
+        // If userId is an ObjectId, fetch by id; otherwise try by email
+        if (mongoose.Types.ObjectId.isValid(obj.userId)) {
+          user = await User.findById(obj.userId).select('-password -__v').lean();
+        } else if (typeof obj.userId === 'string') {
+          const u = await User.findOne({ ename: String(obj.userId).toLowerCase().trim() }).select('-password -__v').lean();
+          if (u) user = u;
+        }
+      }
+      obj.user = user;
+      return obj;
+    }));
+
+    res.json(enriched);
   } catch (error) {
-    res.status(500).json({ error: "Failed recent donations" });
+    console.error('Recent donations error', error);
+    res.status(500).json({ error: 'Failed recent donations' });
   }
 });
 

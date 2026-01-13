@@ -1,6 +1,6 @@
 import { Box, Button, TextField, Typography, Avatar, InputAdornment, IconButton } from "@mui/material";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 // Icons
@@ -31,6 +31,22 @@ const Login = () => {
   const navigate = useNavigate(); // ✅ correct usage
 
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+  // Refs to support Enter-to-advance and Enter-to-submit
+  const enameRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  const handleKeyDown = (e, next) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (next === 'submit') {
+        addHandler();
+      } else {
+        const map = { ename: enameRef, password: passwordRef };
+        map[next]?.current?.focus?.();
+      }
+    }
+  };
 
   const validateField = (name, value) => {
     let msg = '';
@@ -113,6 +129,8 @@ const Login = () => {
           name="ename"
           value={input.ename || ''}
           onChange={inputHandler}
+          inputRef={enameRef}
+          onKeyDown={(e) => handleKeyDown(e, 'password')}
           error={!!errors.ename}
           helperText={errors.ename}
           InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
@@ -139,6 +157,8 @@ const Login = () => {
           type={showPassword ? 'text' : 'password'}
           value={input.password || ''}
           onChange={inputHandler}
+          inputRef={passwordRef}
+          onKeyDown={(e) => handleKeyDown(e, 'submit')}
           error={!!errors.password}
           helperText={errors.password}
           InputProps={{

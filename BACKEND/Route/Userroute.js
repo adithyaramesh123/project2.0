@@ -40,4 +40,29 @@ router.post('/login',async(req,res)=>{
     }
 })
 
-module.exports=router;
+// GET /api/users - list all users (admin)
+router.get('/users', async (req, res) => {
+  try {
+    const users = await userModel.find({}, '-password -__v').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    console.error('Fetch users error', err);
+    res.status(500).send({ message: 'Failed to fetch users' });
+  }
+});
+
+// PATCH /api/users/:id/role - update a user's role
+router.patch('/users/:id/role', async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['admin', 'user'].includes(role)) return res.status(400).send({ message: 'Invalid role' });
+    const updated = await userModel.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password -__v');
+    if (!updated) return res.status(404).send({ message: 'User not found' });
+    res.json({ success: true, user: updated });
+  } catch (err) {
+    console.error('Update role error', err);
+    res.status(500).send({ message: 'Failed to update role' });
+  }
+});
+
+module.exports=router; 

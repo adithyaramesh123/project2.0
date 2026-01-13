@@ -126,6 +126,7 @@ import AdminOrganizationView from './AdminOrganizationView'; // New import added
 // }
 
 import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -160,6 +161,7 @@ import {
   MenuItem, // NEW
   FormControl, // NEW
   InputLabel, // NEW
+  InputAdornment, // NEW (for search)
   CircularProgress // NEW
     ,Snackbar,Alert
     ,Dialog,DialogTitle,DialogContent,DialogActions,Radio,RadioGroup,FormControlLabel
@@ -220,12 +222,24 @@ const getStatusColor = (status) => {
     }
 };
 
+// Helper: returns total item quantity for an item-donation
+const getItemCount = (d) => {
+    if (!d || !d.itemDetails) return 0;
+    return (d.itemDetails || []).reduce((sum, it) => sum + (it?.quantity || 0), 0);
+};
+
+// Helper: returns a short string of item names and quantities
+const getItemNames = (d) => {
+    if (!d || !d.itemDetails) return '';
+    return (d.itemDetails || []).map(it => `${it.name || 'Item'} x${it.quantity || 0}`).join(', ');
+};
+
 // --------------------------------------------------------------------
 // 📦 COMPONENT: Summary Card (Unchanged from original code)
 // --------------------------------------------------------------------
 function SummaryCard({ icon, color, label, value }) {
   return (
-    <Grid item xs={12} sm={6} md={3}>
+    <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 3 }}>
       <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
         <Avatar sx={{ bgcolor: color, mr: 2 }}>{icon}</Avatar>
         <CardContent sx={{ flex: 1, p: '8px !important' }}>
@@ -246,6 +260,21 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
     const [processing, setProcessing] = useState({});
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', id: null, message: '' });
+
+    // UI: filter by category and search by user/place
+    const [filterType, setFilterType] = useState('All');
+    const [query, setQuery] = useState('');
+    const navigate = useNavigate();
+
+    const filteredRecent = (recent || []).filter(d => {
+        const typeMatch = filterType === 'All' ? true : d.type === filterType;
+        const q = (query || '').trim().toLowerCase();
+        if (!q) return typeMatch;
+        const donorName = (d.user?.name || d.name || '').toString().toLowerCase();
+        const place = (d.address || d.user?.city || '').toString().toLowerCase();
+        const amount = d.amount ? d.amount.toString() : '';
+        return typeMatch && (donorName.includes(q) || place.includes(q) || amount.includes(q) || (d.itemDetails || []).map(i => i.name?.toLowerCase()).join(' ').includes(q));
+    });
 
     if (!stats) return <Typography sx={{ p: 4 }}>Loading Analytics...</Typography>;
 
@@ -317,7 +346,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
 
             {/* CHARTS SECTION */}
             <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={{ span: 12 }} md={{ span: 4 }}>
                     {/* <Card sx={{ height: 380, p: 2 }}>
                         <Typography variant="h6" fontWeight={600}>Monthly Money Donations</Typography>
                         <ResponsiveContainer width="100%" height="90%">
@@ -330,7 +359,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
                         </ResponsiveContainer>
                     </Card> */}
                 </Grid>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={{ span: 12 }} md={{ span: 8 }}>
                     <Card sx={{ height: 480, p: 2 }}>
                         <Typography variant="h6" fontWeight={600}>
             Item Donation Categories
@@ -361,58 +390,111 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
 </Grid>
             </Grid>
 
-            {/* Recent Donations List */}
+            {/* Recent Donations List - Modern Detailed View */}
             <Paper sx={{ p: 3, mt: 4 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>Recent Donations</Typography>
-                <List>
-                    {recent.map((d) => (
-                        <ListItem key={d._id} divider>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Typography variant="h6">Recent Donations</Typography>
+
+                    <FormControl size="small" sx={{ minWidth: 140, ml: 'auto' }}>
+                        <InputLabel>Category</InputLabel>
+                        <Select value={filterType} label="Category" onChange={(e) => setFilterType(e.target.value)}>
+                            <MenuItem value="All">All</MenuItem>
+                            <MenuItem value="Money">Money</MenuItem>
+                            <MenuItem value="Item">Item</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <TextField
+                        size="small"
+                        placeholder="Search user/place or amount"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
+                        sx={{ width: 300 }}
+                    />
+                </Box>
+
+                <List disablePadding>
+                    {filteredRecent.slice(0, 20).map((d) => (
+                        <ListItem key={d._id} divider sx={{ py: 1.5, alignItems: 'flex-start' }}>
                             <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: d.type === "Money" ? "#43a047" : "#1976d2" }}>
-                                    <MoneyIcon />
+                                <Avatar sx={{ bgcolor: d.type === 'Money' ? '#43a047' : '#1976d2', width: 52, height: 52, fontWeight: 700 }}>
+                                    {d.type === 'Money' ? '₹' : '📦'}
                                 </Avatar>
                             </ListItemAvatar>
+
                             <ListItemText
+                                sx={{ mx: 2 }}
                                 primary={
-                                    d.type === "Money"
-                                        ? `💵 Money — ₹${d.amount.toLocaleString()}`
-                                        : `📦 ${d.itemDetails ? d.itemDetails.length : 0} items donated`
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <Typography fontWeight={700}>{d.user?.name || d.name || 'Anonymous'}</Typography>
+                                        <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>• {d.address ? d.address.split(',')[0] : (d.user?.city || '—')}</Typography>
+                                    </Box>
                                 }
-                                secondary={d?.createdAt ? new Date(d.createdAt).toLocaleString() : ''}
+                                secondary={
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.6, flexWrap: 'wrap' }}>
+                                        {d.type === 'Money' ? (
+                                            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>₹{(d.amount || 0).toLocaleString()}</Typography>
+                                        ) : (
+                                            <MuiTooltip title={getItemNames(d) || 'No items listed'}>
+                                                <Chip label={`${getItemCount(d)} item${getItemCount(d) === 1 ? '' : 's'}`} size="small" color="primary" />
+                                            </MuiTooltip>
+                                        )}
+
+                                        <Chip label={d.type} size="small" variant="outlined" />
+
+                                        <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{d?.createdAt ? new Date(d.createdAt).toLocaleString() : ''}</Typography>
+
+                                        <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{d.user?.email ? `• ${d.user.email}` : ''}</Typography>
+
+                                    </Box>
+                                }
+                                secondaryTypographyProps={{ component: 'div' }}
                             />
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Chip label={d.status} color={getStatusColor(d.status)} />
 
-                                {/* Allow approving rejected donations and rejecting approved ones */}
-                                {d.status !== 'Approved' && (
-                                    <MuiTooltip title={d.status === 'Rejected' ? 'Approve (reconsider)' : 'Approve'}>
-                                        <IconButton
-                                            size="small"
-                                            color="success"
-                                            onClick={() => openConfirm('approve', d._id, 'Are you sure you want to approve this donation?')}
-                                            disabled={!!processing[d._id]}
-                                        >
-                                            {processing[d._id] === 'approving' ? <CircularProgress size={18} /> : <CheckIcon fontSize="small" />}
-                                        </IconButton>
-                                    </MuiTooltip>
-                                )}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, ml: 1 }}>
+                                <Chip label={d.status} color={getStatusColor(d.status)} size="small" />
 
-                                {d.status !== 'Rejected' && (
-                                    <MuiTooltip title={d.status === 'Approved' ? 'Reject (mark as rejected)' : 'Reject'}>
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => openConfirm('reject', d._id, 'Are you sure you want to reject this donation?')}
-                                            disabled={!!processing[d._id]}
-                                        >
-                                            {processing[d._id] === 'rejecting' ? <CircularProgress size={18} /> : <BlockIcon fontSize="small" />}
-                                        </IconButton>
-                                    </MuiTooltip>
-                                )}
+                                <Box>
+                                    {d.status !== 'Approved' && (
+                                        <MuiTooltip title={d.status === 'Rejected' ? 'Approve (reconsider)' : 'Approve'}>
+                                            <IconButton
+                                                size="small"
+                                                color="success"
+                                                onClick={() => openConfirm('approve', d._id, 'Are you sure you want to approve this donation?')}
+                                                disabled={!!processing[d._id]}
+                                                sx={{ mr: 0.5 }}
+                                            >
+                                                {processing[d._id] === 'approving' ? <CircularProgress size={18} /> : <CheckIcon fontSize="small" />}
+                                            </IconButton>
+                                        </MuiTooltip>
+                                    )}
+
+                                    {d.status !== 'Rejected' && (
+                                        <MuiTooltip title={d.status === 'Approved' ? 'Reject (mark as rejected)' : 'Reject'}>
+                                            <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={() => openConfirm('reject', d._id, 'Are you sure you want to reject this donation?')}
+                                                disabled={!!processing[d._id]}
+                                            >
+                                                {processing[d._id] === 'rejecting' ? <CircularProgress size={18} /> : <BlockIcon fontSize="small" />}
+                                            </IconButton>
+                                        </MuiTooltip>
+                                    )}
+                                </Box>
                             </Box>
                         </ListItem>
                     ))}
+
+                    {filteredRecent.length === 0 && (
+                        <Typography sx={{ p: 2, color: 'text.secondary' }}>No donations found.</Typography>
+                    )}
+
                 </List>
+
+
+
                 <Snackbar
                     open={snackbar.open}
                     autoHideDuration={3500}
@@ -520,9 +602,7 @@ function AdminOrganizationPage() {
             field: 'status', 
             headerName: 'Status', 
             width: 120,
-            renderCell: (params) => (
-                <Chip label={params.value} color={getStatusColor(params.value)} size="small" />
-            ),
+            renderCell: (params) => { try { return <Chip label={params.value} color={getStatusColor(params.value)} size="small" /> } catch (err) { console.error('Org status cell error', err, params); return <Chip label="err" size="small" /> } },
         },
         {
             field: 'actions',
@@ -530,7 +610,7 @@ function AdminOrganizationPage() {
             width: 150,
             sortable: false,
             filterable: false,
-            renderCell: (params) => (
+            renderCell: (params) => { try { return (
                     <Box>
                         <MuiTooltip title={params.row.status === 'Active' ? 'Set Inactive' : 'Set Active'}>
                             <IconButton
@@ -550,7 +630,7 @@ function AdminOrganizationPage() {
                             </IconButton>
                         </MuiTooltip>
                     </Box>
-                ),
+                ); } catch (err) { console.error('Org actions cell error', err, params); return <Typography color="error">Err</Typography>; } },
         },
     ];
 
@@ -565,7 +645,7 @@ function AdminOrganizationPage() {
 
             <Box sx={{ mb: 2 }}>
                 <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
                         <TextField
                             label="Organization Name"
                             fullWidth
@@ -574,7 +654,7 @@ function AdminOrganizationPage() {
                             onChange={(e) => setNewOrg(prev => ({ ...prev, name: e.target.value }))}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
                         <TextField
                             label="Contact Email"
                             fullWidth
@@ -583,7 +663,7 @@ function AdminOrganizationPage() {
                             onChange={(e) => setNewOrg(prev => ({ ...prev, contactEmail: e.target.value }))}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={{ span: 12 }} sm={{ span: 3 }}>
                         <TextField
                             label="Password"
                             fullWidth
@@ -593,7 +673,7 @@ function AdminOrganizationPage() {
                             onChange={(e) => setNewOrg(prev => ({ ...prev, password: e.target.value }))}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={{ span: 12 }} sm={{ span: 3 }}>
                         <TextField
                             label="Location"
                             fullWidth
@@ -602,7 +682,7 @@ function AdminOrganizationPage() {
                             onChange={(e) => setNewOrg(prev => ({ ...prev, location: e.target.value }))}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={1}>
+                    <Grid item xs={{ span: 12 }} sm={{ span: 1 }}>
                         <Button
                             variant="contained"
                             color="primary"
@@ -817,6 +897,67 @@ function AdminItemAssignmentPage() {
     );
 }
 
+function AdminUsersPage() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
+
+  useEffect(() => { fetchUsers(); }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const token = getToken();
+      const res = await axios.get('/api/users', { headers: { Authorization: `Bearer ${token}` } });
+      setUsers(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Fetch users error', err);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleRole = async (id, currentRole) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    try {
+      const token = getToken();
+      const res = await axios.patch(`/api/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data && res.data.user) setUsers(prev => prev.map(u => u._id === id ? res.data.user : u));
+      setSnack({ open: true, message: 'User role updated', severity: 'success' });
+    } catch (err) {
+      console.error('Update role error', err);
+      setSnack({ open: true, message: 'Update failed', severity: 'error' });
+    }
+  };
+
+  const columns = [
+    { field: 'fname', headerName: 'Name', width: 220, renderCell: (params) => { try { if (!params || !params.row) return null; const val = params?.value ?? params.row?.fname ?? params.row?.name; return <Typography sx={{ fontWeight: 700 }}>{val || '—'}</Typography>; } catch (err) { console.error('User name cell render error', err, params); return <Typography color="error">Err</Typography>; } } },
+    { field: 'ename', headerName: 'Email', width: 260, valueGetter: (params) => { if (!params) return ''; return params?.value ?? params?.row?.ename ?? params?.row?.email; } },
+    { field: 'role', headerName: 'Role', width: 120, renderCell: (params) => { try { if (!params || !params.row) return null; const v = params?.value ?? params.row?.role ?? 'user'; return <Chip size="small" label={v} color={v === 'admin' ? 'primary' : 'default'} /> } catch (err) { console.error('User role cell render error', err, params); return <Chip size="small" label="err" /> } } },
+    { field: 'city', headerName: 'City', width: 160 },
+    { field: 'createdAt', headerName: 'Joined', width: 180, valueGetter: (params) => { try { if (!params) return ''; const raw = params?.row?.createdAt ?? params?.value; if (!raw) return ''; const dt = new Date(raw); return isNaN(dt.getTime()) ? '' : dt.toLocaleString(); } catch (err) { console.error('createdAt formatter error', err, params); return ''; } } },
+    { field: 'actions', headerName: 'Actions', width: 180, sortable: false, filterable: false, renderCell: (params) => { try { if (!params || !params.row) return null; return (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Button size="small" variant="outlined" onClick={() => toggleRole(params.row._id, params.row.role)}>
+          {params.row.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
+        </Button>
+      </Box>
+    ); } catch (err) { console.error('User actions cell render error', err, params); return <Typography color="error">Err</Typography>; } } }
+  ];
+
+  return (
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h5" fontWeight={700} gutterBottom>Users</Typography>
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Manage registered users</Typography>
+      <DataGrid rows={users} columns={columns} loading={loading} autoHeight getRowId={(row) => row._id} />
+      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity={snack.severity} onClose={() => setSnack(prev => ({ ...prev, open: false }))}>{snack.message}</Alert>
+      </Snackbar>
+    </Paper>
+  );
+}
+
 // --------------------------------------------------------------------
 // ⭐️ MAIN COMPONENT (Refactored to be the Tab Container)
 // --------------------------------------------------------------------
@@ -897,6 +1038,11 @@ export default function AdminDashboard() {
                    />, 
         label: "Analytics & Summary",
         icon: <DashboardIcon />
+    },
+    Users: {
+        component: <AdminUsersPage />,
+        label: "Users",
+        icon: <PeopleIcon />
     },
     Organizations: { 
         component: <AdminOrganizationPage />, 
@@ -1097,24 +1243,18 @@ function AdminRequestsPage() {
             else name = params?.row?.organizationName || 'Unknown org';
             return <Typography sx={{ fontWeight: 600 }}>{name}</Typography>;
         } },
-        { field: 'items', headerName: 'Requested Items', width: 360, renderCell: (params) => (
+        { field: 'items', headerName: 'Requested Items', width: 360, renderCell: (params) => { try { return (
             <Box>
-                {params?.row?.items && params.row.items.map((it, i) => <Chip key={i} label={`${it.name} x${it.quantity}`} sx={{ mr: 0.5 }} size="small" />)}
+                {Array.isArray(params?.row?.items) ? params.row.items.map((it, i) => <Chip key={i} label={`${it.name} x${it.quantity}`} sx={{ mr: 0.5 }} size="small" />) : <Typography color="text.secondary">—</Typography>}
             </Box>
-        ) },
+        ); } catch (err) { console.error('Requested items cell error', err, params); return <Typography color="error">Err</Typography>; } } },
         { field: 'status', headerName: 'Status', width: 120, renderCell: (params) => <Chip label={params?.value} color={getStatusColor(params?.value)} size="small" /> },
-        { field: 'assignedDonationId', headerName: 'Assigned Donation (Donated Items)', width: 300, renderCell: (params) => {
-            const d = params?.row?.assignedDonationId;
-            if (!d) return <Typography color="text.secondary">—</Typography>;
-            const idShort = d._id ? `${d._id.substring(0,8)}...` : 'Donation';
-            const items = d.itemDetails && Array.isArray(d.itemDetails) && d.itemDetails.length ? d.itemDetails.map(it => `${it.name} x${it.quantity}`).join(', ') : '';
-            return (
+        { field: 'assignedDonationId', headerName: 'Assigned Donation (Donated Items)', width: 300, renderCell: (params) => { try { const d = params?.row?.assignedDonationId; if (!d) return <Typography color="text.secondary">—</Typography>; const idShort = d._id ? `${d._id.substring(0,8)}...` : 'Donation'; const items = d.itemDetails && Array.isArray(d.itemDetails) && d.itemDetails.length ? d.itemDetails.map(it => `${it.name} x${it.quantity}`).join(', ') : ''; return (
                 <Box>
                     <Typography sx={{ fontWeight: 700 }}>{idShort}</Typography>
                     {items && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{items}</Typography>}
                 </Box>
-            );
-        } },
+            ); } catch (err) { console.error('Assigned donation cell error', err, params); return <Typography color="error">Err</Typography>; } } },
         { field: 'createdAt', headerName: 'Requested', width: 160, valueGetter: (params) => {
             const raw = params?.row?.createdAt;
             const dt = raw ? new Date(raw) : null;

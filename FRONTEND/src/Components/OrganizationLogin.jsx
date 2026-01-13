@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Box, Button, TextField, Typography, Alert, Avatar, InputAdornment, IconButton, Card, CardContent, CardMedia, Grid } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -43,6 +43,21 @@ const OrganizationLogin = () => {
         });
     };
 
+    // Refs and key handler for Enter navigation
+    const contactEmailRef = useRef(null);
+    const passwordRef = useRef(null);
+    const handleKeyDown = (e, next) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (next === 'submit') {
+                onSubmit();
+            } else {
+                const map = { contactEmail: contactEmailRef, password: passwordRef };
+                map[next]?.current?.focus?.();
+            }
+        }
+    };
+
     const onChange = (e) => {
         const { name, value } = e.target;
         setInput(prev => ({ ...prev, [name]: value }));
@@ -52,7 +67,7 @@ const OrganizationLogin = () => {
     const toggleShowPassword = () => setShowPassword((s) => !s);
 
     const onSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setError('');
         try {
             const res = await axios.post(`${baseurl}/api/organizations/login`, input);
@@ -70,7 +85,7 @@ const OrganizationLogin = () => {
             console.error('Org login failed', err);
             setError(err?.response?.data?.error || 'Login failed');
         }
-    };
+    }; 
 
     return (
         <>
@@ -116,6 +131,8 @@ const OrganizationLogin = () => {
                             name="contactEmail"
                             value={input.contactEmail}
                             onChange={onChange}
+                            inputRef={contactEmailRef}
+                            onKeyDown={(e) => handleKeyDown(e, 'password')}
                             error={!!errors.contactEmail}
                             helperText={errors.contactEmail}
                             InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
@@ -139,6 +156,8 @@ const OrganizationLogin = () => {
                             type={showPassword ? 'text' : 'password'}
                             value={input.password}
                             onChange={onChange}
+                            inputRef={passwordRef}
+                            onKeyDown={(e) => handleKeyDown(e, 'submit')}
                             error={!!errors.password}
                             helperText={errors.password}
                             InputProps={{
@@ -190,7 +209,7 @@ const OrganizationLogin = () => {
                     </Typography>
                     <Grid container spacing={3}>
                         {/* Card 1 */}
-                        <Grid item xs={12} sm={6} md={4}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
                             <Card sx={{
                                 height: '100%',
                                 borderRadius: '12px',
@@ -220,7 +239,7 @@ const OrganizationLogin = () => {
                         </Grid>
 
                         {/* Card 2 */}
-                        <Grid item xs={12} sm={6} md={4}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
                             <Card sx={{
                                 height: '100%',
                                 borderRadius: '12px',
@@ -250,7 +269,7 @@ const OrganizationLogin = () => {
                         </Grid>
 
                         {/* Card 3 */}
-                        <Grid item xs={12} sm={6} md={4}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
                             <Card sx={{
                                 height: '100%',
                                 borderRadius: '12px',

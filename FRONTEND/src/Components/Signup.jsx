@@ -1,6 +1,6 @@
 import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem, InputAdornment, IconButton, FormHelperText, Stack } from '@mui/material';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Icons for modern inputs
@@ -37,6 +37,30 @@ const Signup = () => {
     const baseurl = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
 
+    // Refs for inputs to support Enter-to-advance and auto-advance
+    const fnameRef = useRef(null);
+    const dobRef = useRef(null);
+    const enameRef = useRef(null);
+    const mobileRef = useRef(null);
+    const addressRef = useRef(null);
+    const pincodeRef = useRef(null);
+    const cityRef = useRef(null);
+    const stateRef = useRef(null);
+    const countryRef = useRef(null);
+    const passwordRef = useRef(null);
+
+    const handleKeyDown = (e, next) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (next === 'submit') {
+                addHandler();
+            } else {
+                const map = { fname: fnameRef, dob: dobRef, ename: enameRef, mobile: mobileRef, address: addressRef, pincode: pincodeRef, city: cityRef, state: stateRef, country: countryRef, password: passwordRef };
+                map[next]?.current?.focus?.();
+            }
+        }
+    };
+
     const toggleShowPassword = () => setShowPassword((s) => !s);
 
     const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
@@ -57,8 +81,12 @@ const Signup = () => {
         const { name, value } = e.target;
         setInput((prev) => ({ ...prev, [name]: value }));
         if (['fname','ename','password','pincode'].includes(name)) validateField(name, value);
-        if (name === 'pincode' && value && value.length >= 6) fetchPincode(value);
-    }; 
+        if (name === 'pincode' && value && value.length >= 6) {
+            fetchPincode(value);
+            // auto-focus city after pincode entry
+            setTimeout(() => cityRef.current?.focus(), 0);
+        }
+    };  
 
     const fetchPincode = async (pin) => {
         if (!pin || pin.toString().length < 6) return;
@@ -118,7 +146,7 @@ const Signup = () => {
                     </Box>
 
                     <Grid container spacing={2}>
-                        <Grid item xs={12} sm={8}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 8 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -126,6 +154,8 @@ const Signup = () => {
                                 name="fname"
                                 value={input.fname}
                                 onChange={inputHandler}
+                                inputRef={fnameRef}
+                                onKeyDown={(e) => handleKeyDown(e, 'dob')}
                                 size="small"
                                 InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
                                 error={!!errors.fname}
@@ -133,7 +163,7 @@ const Signup = () => {
                                 sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -141,6 +171,8 @@ const Signup = () => {
                                 name="dob"
                                 value={input.dob}
                                 onChange={inputHandler}
+                                inputRef={dobRef}
+                                onKeyDown={(e) => handleKeyDown(e, 'ename')}
                                 type="date"
                                 size="small"
                                 InputLabelProps={{ shrink: true }}
@@ -149,7 +181,7 @@ const Signup = () => {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -157,6 +189,8 @@ const Signup = () => {
                                 name="ename"
                                 value={input.ename}
                                 onChange={inputHandler}
+                                inputRef={enameRef}
+                                onKeyDown={(e) => handleKeyDown(e, 'mobile')}
                                 size="small"
                                 InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
                                 error={!!errors.ename}
@@ -164,7 +198,7 @@ const Signup = () => {
                                 sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -172,13 +206,15 @@ const Signup = () => {
                                 name="mobile"
                                 value={input.mobile}
                                 onChange={inputHandler}
+                                inputRef={mobileRef}
+                                onKeyDown={(e) => handleKeyDown(e, 'address')}
                                 size="small"
                                 InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
                                 sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
                             />
                         </Grid>
 
-                        <Grid item xs={12}>
+                        <Grid item xs={{ span: 12 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -186,6 +222,8 @@ const Signup = () => {
                                 name="address"
                                 value={input.address}
                                 onChange={inputHandler}
+                                inputRef={addressRef}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); pincodeRef.current?.focus(); } }}
                                 multiline
                                 rows={2}
                                 size="small"
@@ -194,7 +232,7 @@ const Signup = () => {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -208,24 +246,24 @@ const Signup = () => {
                                 sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField variant="outlined" fullWidth label="City" name="city" value={input.city} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
+                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
+                            <TextField variant="outlined" fullWidth label="City" name="city" value={input.city} onChange={inputHandler} inputRef={cityRef} onKeyDown={(e) => handleKeyDown(e, 'state')} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField variant="outlined" fullWidth label="State" name="state" value={input.state} onChange={inputHandler} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
+                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
+                            <TextField variant="outlined" fullWidth label="State" name="state" value={input.state} onChange={inputHandler} inputRef={stateRef} onKeyDown={(e) => handleKeyDown(e, 'country')} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
                             <FormControl fullWidth size="small">
                                 <InputLabel sx={{ color: 'rgba(255,255,255,0.85)' }}>Country</InputLabel>
-                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}>
+                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} inputRef={countryRef} onKeyDown={(e) => handleKeyDown(e, 'password')} sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}>
                                     <MenuItem value="INDIA">INDIA</MenuItem>
                                     <MenuItem value="OTHER">OTHER</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -233,6 +271,8 @@ const Signup = () => {
                                 name="password"
                                 value={input.password}
                                 onChange={inputHandler}
+                                inputRef={passwordRef}
+                                onKeyDown={(e) => handleKeyDown(e, 'submit')}
                                 type={showPassword ? 'text' : 'password'}
                                 size="small"
                                 InputProps={{
