@@ -1,13 +1,14 @@
-import { AppBar, Box, Button, IconButton, Toolbar, Typography } from '@mui/material'
-import { Handshake } from '@mui/icons-material'
+import { AppBar, Box, Button, IconButton, Toolbar, Typography, Drawer, List, ListItem, ListItemText } from '@mui/material'
+import { Handshake, Menu, Close } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
  
  const Nav = () => {
     const [role,setRole] = useState(null);
-  const [adminSidebar, setAdminSidebar] = useState({ open: false, width: 0 });
-  const navigate = useNavigate();
-  const location = useLocation();
+    const [adminSidebar, setAdminSidebar] = useState({ open: false, width: 0 });
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
   useEffect(() => {
     const handler = (e) => {
@@ -89,6 +90,59 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
     }, 220);
   }
 
+  const handleMobileMenuClose = () => setMobileMenuOpen(false);
+
+  const renderMobileNavLinks = () => {
+    if (role === 'admin') {
+      return (
+        <>
+          <ListItem component={Link} to={'/admin'} onClick={handleMobileMenuClose}>
+            <ListItemText primary="Dashboard" sx={{ color: '#08306b' }} />
+          </ListItem>
+          <ListItem component={Link} to={'/admin/items'} onClick={handleMobileMenuClose}>
+            <ListItemText primary="Items" sx={{ color: '#08306b' }} />
+          </ListItem>
+          <ListItem component={Link} to={'/admin/org'} onClick={handleMobileMenuClose}>
+            <ListItemText primary="Organizations" sx={{ color: '#08306b' }} />
+          </ListItem>
+        </>
+      )
+    }
+
+    if (role === 'organization') {
+      return (
+        <>
+          <ListItem component={Link} to={'/admin/org'} onClick={handleMobileMenuClose}>
+            <ListItemText primary="Organization Dashboard" sx={{ color: '#08306b' }} />
+          </ListItem>
+          <ListItem component={Link} to={'/admin/org'} onClick={handleMobileMenuClose}>
+            <ListItemText primary="My Requests" sx={{ color: '#08306b' }} />
+          </ListItem>
+        </>
+      )
+    }
+
+    return (
+      <>
+        <ListItem onClick={() => { handleScroll('mission'); handleMobileMenuClose(); }}>
+          <ListItemText primary="Our Mission" sx={{ color: '#08306b' }} />
+        </ListItem>
+        <ListItem onClick={() => { handleScroll('impact'); handleMobileMenuClose(); }}>
+          <ListItemText primary="Impact" sx={{ color: '#08306b' }} />
+        </ListItem>
+        <ListItem onClick={() => { handleScroll('get-involved'); handleMobileMenuClose(); }}>
+          <ListItemText primary="Get Involved" sx={{ color: '#08306b' }} />
+        </ListItem>
+        <ListItem component={Link} to={'/about'} onClick={handleMobileMenuClose}>
+          <ListItemText primary="About" sx={{ color: '#08306b' }} />
+        </ListItem>
+        <ListItem component={Link} to={'/c'} onClick={handleMobileMenuClose}>
+          <ListItemText primary="Contact" sx={{ color: '#08306b' }} />
+        </ListItem>
+      </>
+    )
+  }
+
   return (
     <div>
       <Box sx={{ flexGrow: 1 }}>
@@ -104,13 +158,21 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
           }}
         >
           <Toolbar sx={{ display: 'flex', gap: 2 }}>
-            <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}></IconButton>
+            <IconButton 
+              size="large" 
+              edge="start" 
+              color="inherit" 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }}
+            >
+              {mobileMenuOpen ? <Close /> : <Menu />}
+            </IconButton>
             <Button component={Link} to={'/'} sx={{ display: 'flex', alignItems: 'center', gap: 1, textTransform: 'none', color: 'white', '&:hover': { opacity: 0.8 } }}>
-              <Handshake sx={{ color: 'white', fontSize: 28 }} />
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>CHANGING LIVES</Typography>
+              <Handshake sx={{ color: 'white', fontSize: { xs: 20, md: 28 } }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: { xs: 'none', sm: 'block' } }}>CHANGING LIVES</Typography>
             </Button>
             <Box sx={{ flexGrow: 1 }}></Box>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
               {/* Main links */}
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>{renderLinks()}</Box>
 
@@ -119,13 +181,46 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
                 <Button color="inherit" onClick={handleLogout} sx={{ textTransform: 'none' }}>Logout</Button>
               ) : (
                 <>
-                <Button component={Link} to={'/L'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600 }}>Login</Button>
-                  <Button component={Link} to={'/s'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600 }}>SignUp</Button>
-                  <Button component={Link} to={'/org/login'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600 }}>Organization Login</Button>
+                <Button component={Link} to={'/L'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600, fontSize: { md: 14 } }}>Login</Button>
+                  <Button component={Link} to={'/s'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600, fontSize: { md: 14 } }}>SignUp</Button>
+                  <Button component={Link} to={'/org/login'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600, fontSize: { md: 14 } }}>Org Login</Button>
+                </>
+              )}
+            </Box>
+
+            {/* Mobile auth buttons */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 0.5 }}>
+              {role ? (
+                <Button color="inherit" onClick={handleLogout} sx={{ textTransform: 'none', fontSize: 12 }}>Logout</Button>
+              ) : (
+                <>
+                <Button component={Link} to={'/L'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600, fontSize: 11 }}>Login</Button>
+                  <Button component={Link} to={'/s'} sx={{ color: 'white', textTransform: 'uppercase', fontWeight: 600, fontSize: 11 }}>SignUp</Button>
                 </>
               )}
             </Box>
           </Toolbar>
+
+          {/* Mobile Menu Drawer */}
+          <Drawer
+            anchor="top"
+            open={mobileMenuOpen}
+            onClose={handleMobileMenuClose}
+            sx={{ display: { xs: 'block', md: 'none' } }}
+          >
+            <Box sx={{ width: '100%', pt: 2, pb: 2 }}>
+              <List>
+                {renderMobileNavLinks()}
+                {!role && (
+                  <>
+                    <ListItem component={Link} to={'/org/login'} onClick={handleMobileMenuClose}>
+                      <ListItemText primary="Organization Login" sx={{ color: '#08306b' }} />
+                    </ListItem>
+                  </>
+                )}
+              </List>
+            </Box>
+          </Drawer>
         </AppBar>
         {/* spacer so page content isn't hidden under fixed AppBar */}
         <Toolbar />
