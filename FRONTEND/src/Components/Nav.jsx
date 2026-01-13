@@ -1,4 +1,5 @@
 import { AppBar, Box, Button, IconButton, Toolbar, Typography } from '@mui/material'
+import { Handshake } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
  
@@ -104,7 +105,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
         >
           <Toolbar sx={{ display: 'flex', gap: 2 }}>
             <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}></IconButton>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, color: 'white' }}>CHANGING LIVES</Typography>
+            <Button component={Link} to={'/'} sx={{ display: 'flex', alignItems: 'center', gap: 1, textTransform: 'none', color: 'white', '&:hover': { opacity: 0.8 } }}>
+              <Handshake sx={{ color: 'white', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>CHANGING LIVES</Typography>
+            </Button>
+            <Box sx={{ flexGrow: 1 }}></Box>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               {/* Main links */}
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>{renderLinks()}</Box>
