@@ -809,7 +809,7 @@ function AdminItemAssignmentPage() {
     
     return (
         <Paper sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
+            <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>S
                 Item Assignment Queue
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 3 }}>
@@ -824,7 +824,7 @@ function AdminItemAssignmentPage() {
                 </Typography>
             ) : (
                 <TableContainer>
-                    <Table size="small">
+                    <Table size="small">        
                         <TableHead>
                             <TableRow>
                                 <TableCell>Donation ID</TableCell>
