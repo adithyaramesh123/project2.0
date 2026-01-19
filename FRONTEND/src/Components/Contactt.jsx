@@ -7,19 +7,21 @@ import MessageIcon from '@mui/icons-material/Message';
 import PhoneIcon from '@mui/icons-material/Phone';
 import SendIcon from '@mui/icons-material/Send';
 
-// Pastel-blue page background (matches Signup)
-const BackgroundStyle = {
-  backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
-  backgroundSize: 'cover, 100% 60px',
-  backgroundPosition: 'center, bottom',
-  backgroundRepeat: 'no-repeat, no-repeat',
+// Theme-aware page background
+const BackgroundStyle = (theme) => ({
+  background: theme.palette.mode === 'dark' 
+    ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 40%, #1e1e1e 70%, #121212 100%)'
+    : 'linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%)',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
   minHeight: '100vh',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: '40px 0',
   fontFamily: "'Poppins', sans-serif",
-};
+});
 
 export default function Contactt() {
   const theme = useTheme();
@@ -59,7 +61,7 @@ export default function Contactt() {
   };
 
   return (
-    <Box sx={BackgroundStyle}>
+    <Box sx={BackgroundStyle(theme)}>
       <Container maxWidth="lg">
         <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
           <Grid container spacing={4} alignItems="center">

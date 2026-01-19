@@ -152,8 +152,8 @@ const Signup = () => {
                         </Box>
                     </Box>
 
-                    <Grid container spacing={2}>
-                        <Grid item xs={{ span: 12 }} sm={{ span: 8 }}>
+                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                        <Grid item xs={12} sm={8}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -164,13 +164,33 @@ const Signup = () => {
                                 inputRef={fnameRef}
                                 onKeyDown={(e) => handleKeyDown(e, 'dob')}
                                 size="small"
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
                                 error={!!errors.fname}
                                 helperText={errors.fname}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
-                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
+                        <Grid item xs={12} sm={4}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -183,12 +203,32 @@ const Signup = () => {
                                 type="date"
                                 size="small"
                                 InputLabelProps={{ shrink: true }}
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><CalendarTodayIcon fontSize="small" sx={{ color: '#1976d2' }} /></InputAdornment>) }}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><CalendarTodayIcon fontSize="small" sx={{ color: 'primary.main' }} /></InputAdornment>) }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
 
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -199,13 +239,33 @@ const Signup = () => {
                                 inputRef={enameRef}
                                 onKeyDown={(e) => handleKeyDown(e, 'mobile')}
                                 size="small"
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
                                 error={!!errors.ename}
                                 helperText={errors.ename}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -216,12 +276,32 @@ const Signup = () => {
                                 inputRef={mobileRef}
                                 onKeyDown={(e) => handleKeyDown(e, 'address')}
                                 size="small"
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
 
-                        <Grid item xs={{ span: 12 }}>
+                        <Grid item xs={12}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -234,12 +314,32 @@ const Signup = () => {
                                 multiline
                                 rows={2}
                                 size="small"
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><HomeIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><HomeIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
 
-                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
+                        <Grid item xs={12} sm={4}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -248,29 +348,136 @@ const Signup = () => {
                                 value={input.pincode}
                                 onChange={(e) => { inputHandler(e); if (e.target.value.length >= 6) fetchPincode(e.target.value); }}
                                 size="small"
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><LocationOnIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><LocationOnIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
                                 helperText={loadingPin ? 'Looking up pincode...' : ''}
-                                sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
-                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
-                            <TextField variant="outlined" fullWidth label="City" name="city" value={input.city} onChange={inputHandler} inputRef={cityRef} onKeyDown={(e) => handleKeyDown(e, 'state')} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
+                        <Grid item xs={12} sm={4}>
+                            <TextField 
+                                variant="outlined" 
+                                fullWidth 
+                                label="City" 
+                                name="city" 
+                                value={input.city} 
+                                onChange={inputHandler} 
+                                inputRef={cityRef} 
+                                onKeyDown={(e) => handleKeyDown(e, 'state')} 
+                                size="small" 
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
+                            />
                         </Grid>
-                        <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
-                            <TextField variant="outlined" fullWidth label="State" name="state" value={input.state} onChange={inputHandler} inputRef={stateRef} onKeyDown={(e) => handleKeyDown(e, 'country')} size="small" sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }} />
+                        <Grid item xs={12} sm={4}>
+                            <TextField 
+                                variant="outlined" 
+                                fullWidth 
+                                label="State" 
+                                name="state" 
+                                value={input.state} 
+                                onChange={inputHandler} 
+                                inputRef={stateRef} 
+                                onKeyDown={(e) => handleKeyDown(e, 'country')} 
+                                size="small" 
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
+                            />
                         </Grid>
 
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
+                        <Grid item xs={12} sm={6}>
                             <FormControl fullWidth size="small">
-                                <InputLabel sx={{ color: 'rgba(255,255,255,0.85)' }}>Country</InputLabel>
-                                <Select value={input.country} label="Country" name="country" onChange={inputHandler} inputRef={countryRef} onKeyDown={(e) => handleKeyDown(e, 'password')} sx={{ bgcolor: 'rgba(246,251,255,0.95)', borderRadius: 1, border: '1px solid rgba(30,120,200,0.06)' }}>
+                                <InputLabel sx={{ color: 'text.secondary' }}>Country</InputLabel>
+                                <Select 
+                                    value={input.country} 
+                                    label="Country" 
+                                    name="country" 
+                                    onChange={inputHandler} 
+                                    inputRef={countryRef} 
+                                    onKeyDown={(e) => handleKeyDown(e, 'password')} 
+                                    sx={{
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                        borderRadius: 2,
+                                        '& .MuiOutlinedInput-root': {
+                                            '& fieldset': {
+                                                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                            },
+                                            '&.Mui-focused fieldset': {
+                                                borderColor: 'primary.main',
+                                            },
+                                        },
+                                        '& .MuiSelect-select': {
+                                            color: 'text.primary',
+                                        },
+                                    }}
+                                >
                                     <MenuItem value="INDIA">INDIA</MenuItem>
                                     <MenuItem value="OTHER">OTHER</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 variant="outlined"
                                 fullWidth
@@ -283,12 +490,32 @@ const Signup = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 size="small"
                                 InputProps={{
-                                    startAdornment: (<InputAdornment position="start"><LockIcon /></InputAdornment>),
-                                    endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: '#fff' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
+                                    startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: 'primary.main' }} /></InputAdornment>),
+                                    endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: 'primary.main' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
                                 }}
                                 error={!!errors.password}
                                 helperText={errors.password}
-                                sx={{ bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }}
+                                sx={{
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(246,251,255,0.95)',
+                                    borderRadius: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        '& fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(30,120,200,0.2)',
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(30,120,200,0.3)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: 'primary.main',
+                                        },
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        color: 'text.secondary',
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: 'text.primary',
+                                    },
+                                }}
                             />
                         </Grid>
                     </Grid>
@@ -317,8 +544,8 @@ const Signup = () => {
                         Sign Up
                     </Button>
 
-                    <Typography variant='body2' align='center' sx={{ color: 'rgba(8,48,107,0.7)', mt: 1 }}>
-                        Already a user? <MuiLink component="button" onClick={() => navigate('/L')} sx={{ color: '#1e88e5', fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Login here</MuiLink>
+                    <Typography variant='body2' align='center' sx={{ color: 'text.secondary', mt: 1 }}>
+                        Already a user? <MuiLink component="button" onClick={() => navigate('/L')} sx={{ color: 'primary.main', fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Login here</MuiLink>
                     </Typography>
 
                 </Box>

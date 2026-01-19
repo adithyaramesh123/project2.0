@@ -163,7 +163,7 @@ export default function Home() {
               }}>
                 Empowering Lives,<br />
                 <span style={{
-                  backgroundImage: 'linear-gradient(to right, #22c55e, #3b82f6)',
+                  backgroundImage: 'linear-gradient(to right, #22c55e, #16a34a)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}>Creating Future.</span>

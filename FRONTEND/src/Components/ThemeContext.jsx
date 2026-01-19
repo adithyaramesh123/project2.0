@@ -27,14 +27,24 @@ export const ThemeProviderWrapper = ({ children }) => {
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: '#22c55e', // green
+        main: '#22c55e', // green - back to original theme
+        light: '#4ade80',
+        dark: '#16a34a',
+        contrastText: '#ffffff',
       },
       secondary: {
         main: '#f50057',
+        light: '#ff4081',
+        dark: '#c51162',
+        contrastText: '#ffffff',
       },
       background: {
         default: darkMode ? '#121212' : '#ffffff',
         paper: darkMode ? '#1e1e1e' : '#ffffff',
+      },
+      text: {
+        primary: darkMode ? '#ffffff' : '#000000',
+        secondary: darkMode ? '#b0b0b0' : '#666666',
       },
     },
     typography: {
