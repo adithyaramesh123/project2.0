@@ -27,24 +27,24 @@ export const ThemeProviderWrapper = ({ children }) => {
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: '#22c55e', // green - back to original theme
-        light: '#4ade80',
-        dark: '#16a34a',
+        main: '#0d9488', // Teal
+        light: '#2dd4bf',
+        dark: '#0f766e',
         contrastText: '#ffffff',
       },
       secondary: {
-        main: '#f50057',
-        light: '#ff4081',
-        dark: '#c51162',
+        main: '#f59e0b', // Amber
+        light: '#fbbf24',
+        dark: '#d97706',
         contrastText: '#ffffff',
       },
       background: {
-        default: darkMode ? '#121212' : '#ffffff',
+        default: darkMode ? '#121212' : '#f0fdfa', // Very light teal tint for light mode
         paper: darkMode ? '#1e1e1e' : '#ffffff',
       },
       text: {
-        primary: darkMode ? '#ffffff' : '#000000',
-        secondary: darkMode ? '#b0b0b0' : '#666666',
+        primary: darkMode ? '#f3f4f6' : '#111827',
+        secondary: darkMode ? '#9ca3af' : '#4b5563',
       },
     },
     typography: {
