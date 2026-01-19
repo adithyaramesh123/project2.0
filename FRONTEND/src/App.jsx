@@ -19,11 +19,13 @@ import DonationPage from './Components/DonationPage'
 import AdminItemsPage from './Components/AdminItemsPage'
 import Organization from './Components/Organization'
 import AdminOrganizationView from './Components/AdminOrganizationView'
+import { ThemeProviderWrapper } from './Components/ThemeContext'
+
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <ThemeProviderWrapper>
       <Nav />
       <Routes>
         <Route path='/s' element={<Signup/>}/>
@@ -47,7 +49,7 @@ function App() {
   <Route path="/admin/org" element={<Organization />} />
   <Route path="/admin/orgs/:id" element={<AdminOrganizationView />} />
       </Routes>
-    </>
+    </ThemeProviderWrapper>
   )
 }
 //test

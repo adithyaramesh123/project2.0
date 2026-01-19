@@ -1,11 +1,11 @@
-/* Animated blue-white donation page styles */
+/* Animated donation page styles */
 .donation-page {
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #eaf4ff 0%, #ffffff 50%, #dff0ff 100%);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-tertiary) 100%);
   overflow: hidden;
   padding: 4rem 1rem;
 }
@@ -31,22 +31,22 @@
   position: relative;
   width: 100%;
   max-width: 1100px;
-  background: rgba(255,255,255,0.85);
+  background: var(--glass-bg);
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(6,30,70,0.12);
+  box-shadow: 0 10px 30px var(--glass-border);
   padding: 28px;
   z-index: 2;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .donation-header h1 {
   margin: 0 0 6px 0;
-  color: #073b8c;
+  color: var(--text-primary);
   letter-spacing: -0.5px;
 }
 .donation-header .subtitle {
   margin: 0 0 18px 0;
-  color: #2b5fa8;
+  color: var(--text-secondary);
   opacity: 0.92;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .donation-card, .notes-card {
-  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
   border-radius: 12px;
   padding: 16px;
   text-align: center;
@@ -67,7 +67,7 @@
   align-items: center;
   justify-content: center;
   transition: transform 220ms ease, box-shadow 220ms ease;
-  border: 1px solid rgba(11,110,246,0.06);
+  border: 1px solid var(--glass-border);
 }
 
 .donation-card:hover {
@@ -83,25 +83,27 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(11,110,246,0.12), rgba(11,110,246,0.06));
-  color: #03408f;
+  background: linear-gradient(180deg, var(--accent-glow), var(--glass-bg));
+  color: var(--accent-primary);
   margin-bottom: 8px;
 }
 
 .donation-card h3 {
   margin: 6px 0 4px 0;
-  color: #03408f;
+  color: var(--text-primary);
 }
-.donation-card p { margin: 0 0 8px 0; color: #3b6fb4; font-size: 13px; }
+.donation-card p { margin: 0 0 8px 0; color: var(--text-secondary); font-size: 13px; }
 
 .donation-card input[type="number"], .notes-card textarea, .donation-card input[type="text"] {
   width: 92%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(5,60,130,0.08);
+  border: 1px solid var(--glass-border);
   outline: none;
   margin-top: 6px;
   font-size: 14px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .notes-card textarea { min-height: 86px; resize: vertical; }
@@ -114,21 +116,21 @@
 }
 
 .btn { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-.btn.ghost { background: transparent; color: #0756b8; border: 1px solid rgba(7,86,184,0.12); }
-.btn.primary { background: linear-gradient(90deg,#0b6ef6,#0a53d9); color: white; box-shadow: 0 8px 18px rgba(11,110,246,0.12); }
+.btn.ghost { background: transparent; color: var(--accent-primary); border: 1px solid var(--glass-border); }
+.btn.primary { background: linear-gradient(90deg,var(--accent-primary),var(--accent-secondary)); color: white; box-shadow: 0 8px 18px var(--accent-glow); }
 .btn.primary:hover { transform: translateY(-2px); }
 
-.form-error { color: #a02b2b; margin-top: 8px; }
+.form-error { color: #ff6b6b; margin-top: 8px; }
 
 .success-toast {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  background: linear-gradient(180deg,#e8f5ff,#dff4ff);
-  border: 1px solid rgba(3,64,143,0.08);
+  background: linear-gradient(180deg,var(--bg-secondary),var(--bg-primary));
+  border: 1px solid var(--glass-border);
   padding: 14px 16px;
   border-radius: 12px;
-  box-shadow: 0 8px 26px rgba(6,30,70,0.12);
+  box-shadow: 0 8px 26px var(--glass-border);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -136,8 +138,8 @@
   animation: toastPop .36s ease;
 }
 .toast-content { display:flex; gap:12px; align-items:center; }
-.success-toast .check { font-size: 22px; background: #0560d9; color: white; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
-.success-toast .close { background: transparent; border: none; color: #03408f; cursor: pointer; margin-left: 8px; }
+.success-toast .check { font-size: 22px; background: var(--accent-primary); color: white; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+.success-toast .close { background: transparent; border: none; color: var(--text-primary); cursor: pointer; margin-left: 8px; }
 
 @keyframes toastPop { from { transform: translateY(10px) scale(0.96); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
 

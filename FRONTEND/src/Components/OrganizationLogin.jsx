@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Box, Button, TextField, Typography, Alert, Avatar, InputAdornment, IconButton, Card, CardContent, CardMedia, Grid } from '@mui/material';
+import { Box, Button, TextField, Typography, Alert, Avatar, InputAdornment, IconButton, Card, CardContent, CardMedia, Grid, useTheme } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,21 +9,24 @@ import LockIcon from '@mui/icons-material/Lock';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-// Pastel-blue page background (matches Signup)
-const BackgroundStyle = {
-    backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
-    backgroundSize: 'cover, 100% 60px',
-    backgroundPosition: 'center, bottom',
-    backgroundRepeat: 'no-repeat, no-repeat',
+// Theme-aware page background
+const BackgroundStyle = (theme) => ({
+    background: theme.palette.mode === 'dark' 
+        ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 40%, #1e1e1e 70%, #121212 100%)'
+        : 'linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '20px 0',
     fontFamily: "'Poppins', sans-serif",
-};
+});
 
 const OrganizationLogin = () => { 
+    const theme = useTheme();
     const [input, setInput] = useState({ contactEmail: '', password: '' });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -89,41 +92,34 @@ const OrganizationLogin = () => {
 
     return (
         <>
-            <Box sx={{
-                backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
-                backgroundSize: 'cover, 100% 60px',
-                backgroundPosition: 'center, bottom',
-                backgroundRepeat: 'no-repeat, no-repeat',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px 0',
-                fontFamily: "'Poppins', sans-serif",
-            }}>
+            <Box sx={BackgroundStyle(theme)}>
                 <Box
                     sx={{
                         width: { xs: '94%', sm: 720, md: 900 },
                         maxWidth: 1100,
                         padding: { xs: '28px', sm: '48px' },
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,252,255,0.98))',
+                        background: 'background.paper',
                         borderRadius: '16px',
-                        boxShadow: '0 14px 48px rgba(16,81,139,0.08)',
+                        boxShadow: theme.palette.mode === 'dark' 
+                            ? '0 14px 48px rgba(0,0,0,0.3)' 
+                            : '0 14px 48px rgba(16,81,139,0.08)',
                         textAlign: 'center',
-                        border: '1px solid rgba(30,120,200,0.08)',
+                        border: theme.palette.mode === 'dark' 
+                            ? '1px solid rgba(255,255,255,0.1)' 
+                            : '1px solid rgba(30,120,200,0.08)',
                         position: 'relative',
                         overflow: 'hidden'
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, justifyContent: 'center' }}>
-                        <Avatar sx={{ width: 96, height: 96, bgcolor: '#dff6ff', color: '#08306b', fontSize: '2.2rem' }}>🏢</Avatar>
+                        <Avatar sx={{ width: 96, height: 96, bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#dff6ff', color: theme.palette.mode === 'dark' ? 'primary.contrastText' : '#08306b', fontSize: '2.2rem' }}>🏢</Avatar>
                         <Box>
-                            <Typography variant="h3" sx={{ fontWeight: 800, color: '#08306b', fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>Organization Portal</Typography>
-                            <Typography variant="body1" sx={{ color: 'rgba(8,48,107,0.65)', fontSize: 16 }}>Login to your organization account</Typography>
+                            <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>Organization Portal</Typography>
+                            <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>Login to your organization account</Typography>
                         </Box>
                     </Box>
 
-                    {error && <Alert severity="error" sx={{ mb: 2, backgroundColor: "rgba(255,235,238,0.95)", color: "#6b0d0d" }}>{error}</Alert>}
+                    {error && <Alert severity="error" sx={{ mb: 2, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,235,238,0.2)' : "rgba(255,235,238,0.95)", color: theme.palette.mode === 'dark' ? '#ff6b6b' : "#6b0d0d" }}>{error}</Alert>}
                     <form onSubmit={onSubmit}>
                         <TextField
                             fullWidth
@@ -135,18 +131,18 @@ const OrganizationLogin = () => {
                             onKeyDown={(e) => handleKeyDown(e, 'password')}
                             error={!!errors.contactEmail}
                             helperText={errors.contactEmail}
-                            InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#1976d2' }} /></InputAdornment>) }}
+                            InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
                             sx={{
                                 mb: 2,
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
-                                    backgroundColor: "rgba(246,251,255,0.95)",
+                                    backgroundColor: "background.paper",
                                     "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
                                     "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
                                     "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
                                 },
-                                "& .MuiInputLabel-root": { color: "rgba(8,48,107,0.6)" },
-                                "& .MuiInputBase-input": { color: "#08306b" },
+                                "& .MuiInputLabel-root": { color: "text.secondary" },
+                                "& .MuiInputBase-input": { color: "text.primary" },
                             }}
                         />
                         <TextField
@@ -161,20 +157,20 @@ const OrganizationLogin = () => {
                             error={!!errors.password}
                             helperText={errors.password}
                             InputProps={{
-                                startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: '#1976d2' }} /></InputAdornment>),
-                                endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: '#1976d2' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
+                                startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: 'primary.main' }} /></InputAdornment>),
+                                endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: 'primary.main' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
                             }}
                             sx={{
                                 mb: 2,
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
-                                    backgroundColor: "rgba(246,251,255,0.95)",
+                                    backgroundColor: "background.paper",
                                     "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
                                     "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
                                     "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
                                 },
-                                "& .MuiInputLabel-root": { color: "rgba(8,48,107,0.6)" },
-                                "& .MuiInputBase-input": { color: "#08306b" },
+                                "& .MuiInputLabel-root": { color: "text.secondary" },
+                                "& .MuiInputBase-input": { color: "text.primary" },
                             }}
                         />
                         <Button
@@ -184,15 +180,17 @@ const OrganizationLogin = () => {
                             disabled={!input.contactEmail || !input.password || Object.keys(errors).length > 0}
                             sx={{
                                 mt: 2,
-                                background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)',
-                                color: '#08306b',
+                                background: 'primary.main',
+                                color: 'primary.contrastText',
                                 fontWeight: 800,
                                 padding: '14px',
                                 borderRadius: '12px',
                                 textTransform: 'none',
                                 fontSize: '18px',
-                                boxShadow: '0 10px 28px rgba(16,81,139,0.08)',
-                                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 16px 36px rgba(16,81,139,0.1)' },
+                                boxShadow: theme.palette.mode === 'dark' 
+                                    ? '0 10px 28px rgba(0,0,0,0.3)' 
+                                    : '0 10px 28px rgba(16,81,139,0.08)',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.palette.mode === 'dark' ? '0 16px 36px rgba(0,0,0,0.4)' : '0 16px 36px rgba(16,81,139,0.1)' },
                             }}
                         >
                             Login
@@ -204,7 +202,7 @@ const OrganizationLogin = () => {
             {/* NGO Organization Cards Section */}
             <Box sx={{ py: 8, px: { xs: '20px', sm: '40px' }, background: 'linear-gradient(180deg, #f5f9fc 0%, #ffffff 100%)' }}>
                 <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#08306b', textAlign: 'center', mb: 6, fontSize: { xs: '1.8rem', sm: '2.2rem' } }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', textAlign: 'center', mb: 6, fontSize: { xs: '1.8rem', sm: '2.2rem' } }}>
                         Why Partner With Us?
                     </Typography>
                     <Grid container spacing={3}>
@@ -228,10 +226,10 @@ const OrganizationLogin = () => {
                                     sx={{ objectFit: 'cover' }}
                                 />
                                 <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#08306b', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
                                         Community Impact
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'rgba(8,48,107,0.7)', lineHeight: 1.6 }}>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
                                         Connect with communities that need your support. Make a tangible difference in lives.
                                     </Typography>
                                 </CardContent>
@@ -258,10 +256,10 @@ const OrganizationLogin = () => {
                                     sx={{ objectFit: 'cover' }}
                                 />
                                 <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#08306b', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
                                         Full Transparency
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'rgba(8,48,107,0.7)', lineHeight: 1.6 }}>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
                                         Track donations and requests in real-time. Know exactly where your contributions go.
                                     </Typography>
                                 </CardContent>
@@ -288,10 +286,10 @@ const OrganizationLogin = () => {
                                     sx={{ objectFit: 'cover' }}
                                 />
                                 <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#08306b', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
                                         Easy Management
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'rgba(8,48,107,0.7)', lineHeight: 1.6 }}>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
                                         Simple dashboard to manage requests and coordinate donations. Built for efficiency.
                                     </Typography>
                                 </CardContent>

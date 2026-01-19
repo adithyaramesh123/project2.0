@@ -240,10 +240,10 @@ const getItemNames = (d) => {
 function SummaryCard({ icon, color, label, value }) {
   return (
     <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 3 }}>
-      <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
+      <Card sx={{ p: 2, display: "flex", alignItems: "center", bgcolor: 'background.paper' }}>
         <Avatar sx={{ bgcolor: color, mr: 2 }}>{icon}</Avatar>
         <CardContent sx={{ flex: 1, p: '8px !important' }}>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" fontWeight={700} sx={{ color: 'text.primary' }}>
             {value}
           </Typography>
           <Typography color="text.secondary" sx={{ fontSize: 14 }}>{label}</Typography>
@@ -1064,7 +1064,7 @@ export default function AdminDashboard() {
   const drawer = (
     <Box sx={{ width: sidebarOpen ? drawerWidth : collapsedWidth, transition: 'width 225ms cubic-bezier(0,0,0.2,1)' }} role="presentation">
       <Toolbar sx={{ display: 'flex', justifyContent: sidebarOpen ? 'flex-end' : 'center', px: 1 }}>
-        <IconButton size="small" onClick={handleSidebarToggle} sx={{ color: '#1976d2' }}>
+        <IconButton size="small" onClick={handleSidebarToggle} sx={{ color: 'primary.main' }}>
           {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
       </Toolbar>
@@ -1089,7 +1089,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <Box sx={{ display: 'flex', background: "#f4f6f8", minHeight: "100vh" }}>
+    <Box sx={{ display: 'flex', background: 'background.default', minHeight: "100vh" }}>
       <Box sx={{ width: '100%' }}>
         <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: { md: `${sidebarOpen ? drawerWidth : collapsedWidth}px` }, transition: 'margin 225ms cubic-bezier(0,0,0.2,1)', position: 'relative', zIndex: (theme) => theme.zIndex.drawer + 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

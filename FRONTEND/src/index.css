@@ -3,23 +3,52 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Modern Dark Theme Palette */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #121212;
-  --bg-tertiary: #1e1e1e;
+  /* Light Theme Palette */
+  --bg-primary-light: #ffffff;
+  --bg-secondary-light: #f9f9f9;
+  --bg-tertiary-light: #f0f0f0;
   
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
+  --text-primary-light: #000000;
+  --text-secondary-light: #666666;
   
-  --accent-primary: #22c55e; /* Vibrant Green */
-  --accent-secondary: #3b82f6; /* Electric Blue */
-  --accent-glow: rgba(34, 197, 94, 0.5);
+  --accent-primary-light: #22c55e;
+  --accent-secondary-light: #3b82f6;
+  --accent-glow-light: rgba(34, 197, 94, 0.3);
   
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-blur: 12px;
+  --glass-bg-light: rgba(255, 255, 255, 0.1);
+  --glass-border-light: rgba(0, 0, 0, 0.1);
+  --glass-blur-light: 12px;
 
-  color-scheme: dark;
+  /* Dark Theme Palette */
+  --bg-primary-dark: #0a0a0a;
+  --bg-secondary-dark: #121212;
+  --bg-tertiary-dark: #1e1e1e;
+  
+  --text-primary-dark: #ffffff;
+  --text-secondary-dark: #a1a1aa;
+  
+  --accent-primary-dark: #22c55e;
+  --accent-secondary-dark: #3b82f6;
+  --accent-glow-dark: rgba(34, 197, 94, 0.5);
+  
+  --glass-bg-dark: rgba(255, 255, 255, 0.05);
+  --glass-border-dark: rgba(255, 255, 255, 0.1);
+  --glass-blur-dark: 12px;
+
+  /* Default to light */
+  --bg-primary: var(--bg-primary-light);
+  --bg-secondary: var(--bg-secondary-light);
+  --bg-tertiary: var(--bg-tertiary-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --accent-primary: var(--accent-primary-light);
+  --accent-secondary: var(--accent-secondary-light);
+  --accent-glow: var(--accent-glow-light);
+  --glass-bg: var(--glass-bg-light);
+  --glass-border: var(--glass-border-light);
+  --glass-blur: var(--glass-blur-light);
+
+  color-scheme: light;
   color: var(--text-primary);
   background-color: var(--bg-primary);
 
@@ -29,12 +58,27 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.dark-mode {
+  --bg-primary: var(--bg-primary-dark);
+  --bg-secondary: var(--bg-secondary-dark);
+  --bg-tertiary: var(--bg-tertiary-dark);
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --accent-primary: var(--accent-primary-dark);
+  --accent-secondary: var(--accent-secondary-dark);
+  --accent-glow: var(--accent-glow-dark);
+  --glass-bg: var(--glass-bg-dark);
+  --glass-border: var(--glass-border-dark);
+  --glass-blur: var(--glass-blur-dark);
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   display: block; /* Changed from flex/place-items:center to allow normal flow */
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--bg-primary);
+  /* background-color: var(--bg-primary); */ /* Removed to let MUI theme handle it */
   color: var(--text-primary);
   overflow-x: hidden;
 }

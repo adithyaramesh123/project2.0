@@ -1,4 +1,4 @@
-import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem, InputAdornment, IconButton, FormHelperText, Stack } from '@mui/material';
+import { Box, Button, Container, TextField, Typography, Link as MuiLink, Avatar, Grid, FormControl, InputLabel, Select, MenuItem, InputAdornment, IconButton, FormHelperText, Stack, useTheme } from '@mui/material';
 import axios from 'axios';
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,21 +14,24 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import HomeIcon from '@mui/icons-material/Home';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
-// Custom background using a pastel-blue palette
-const BackgroundStyle = {
-    backgroundImage: `linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%), linear-gradient(90deg, #eaf6ff 0%, #dff3ff 25%, #d3ecff 50%, #c8e6ff 75%, #bfe6ff 100%)`,
-    backgroundSize: 'cover, 100% 60px',
-    backgroundPosition: 'center, bottom',
-    backgroundRepeat: 'no-repeat, no-repeat',
+// Custom background using theme-aware colors
+const BackgroundStyle = (theme) => ({
+    background: theme.palette.mode === 'dark' 
+        ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 40%, #1e1e1e 70%, #121212 100%)'
+        : 'linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '20px 0',
     fontFamily: "'Poppins', sans-serif",
-};
+});
 
 const Signup = () => {
+    const theme = useTheme();
     const [input, setInput] = useState({ fname: '', ename: '', password: '', dob: '', mobile: '', address: '', pincode: '', city: '', state: '', country: 'INDIA' });
     const [loadingPin, setLoadingPin] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -118,28 +121,32 @@ const Signup = () => {
     };
 
     return (
-        <Box sx={BackgroundStyle}>
+        <Box sx={BackgroundStyle(theme)}>
             <Container maxWidth="sm">
                 <Box
                     sx={{
                         width: { xs: '92%', sm: 520 },
                         margin: '0 auto',
                         padding: { xs: '24px', sm: '36px' },
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,252,255,0.98))',
+                        background: 'background.paper',
                         borderRadius: '14px',
-                        boxShadow: '0 8px 30px rgba(16,81,139,0.06)',
-                        color: '#08306b',
+                        boxShadow: theme.palette.mode === 'dark' 
+                            ? '0 8px 30px rgba(0,0,0,0.3)' 
+                            : '0 8px 30px rgba(16,81,139,0.06)',
+                        color: 'text.primary',
                         position: 'relative',
                         overflow: 'hidden',
-                        border: '1px solid rgba(30,120,200,0.08)'
+                        border: theme.palette.mode === 'dark' 
+                            ? '1px solid rgba(255,255,255,0.1)' 
+                            : '1px solid rgba(30,120,200,0.08)'
                     }}
                 >
                 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Avatar sx={{ width: 64, height: 64, bgcolor: '#dff6ff', color: '#08306b', fontSize: '1.8rem' }}>🤝</Avatar>
+                        <Avatar sx={{ width: 64, height: 64, bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#dff6ff', color: theme.palette.mode === 'dark' ? 'primary.contrastText' : '#08306b', fontSize: '1.8rem' }}>🤝</Avatar>
                         <Box>
-                            <Typography variant='h4' sx={{ fontWeight: 700, color: '#08306b' }}>Join Helping Hands</Typography>
-                            <Typography variant='body2' sx={{ color: 'rgba(8,48,107,0.65)' }}>
+                            <Typography variant='h4' sx={{ fontWeight: 700, color: 'text.primary' }}>Join Helping Hands</Typography>
+                            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                                 The best way to find yourself is to lose yourself in the service of others.
                             </Typography>
                         </Box>
@@ -298,11 +305,13 @@ const Signup = () => {
                             py: 1.5,
                             fontWeight: 700,
                             borderRadius: '10px',
-                            background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)',
-                            color: '#08306b',
-                            boxShadow: '0 8px 20px rgba(16,81,139,0.06)',
+                            background: 'primary.main',
+                            color: 'primary.contrastText',
+                            boxShadow: theme.palette.mode === 'dark' 
+                                ? '0 8px 20px rgba(0,0,0,0.3)' 
+                                : '0 8px 20px rgba(16,81,139,0.06)',
                             textTransform: 'none',
-                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 28px rgba(16,81,139,0.08)' }
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.palette.mode === 'dark' ? '0 12px 28px rgba(0,0,0,0.4)' : '0 12px 28px rgba(16,81,139,0.08)' }
                         }} 
                     >
                         Sign Up

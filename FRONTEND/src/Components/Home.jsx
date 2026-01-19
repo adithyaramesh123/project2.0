@@ -65,13 +65,13 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
       sx={{
         p: 3,
         height: '100%',
-        bgcolor: 'rgba(255,255,255,0.03)',
+        bgcolor: 'background.paper',
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '24px',
         transition: 'all 0.3s ease',
         '&:hover': {
-          bgcolor: 'rgba(255,255,255,0.07)',
+          bgcolor: 'background.paper',
           transform: 'translateY(-5px)',
           border: '1px solid rgba(34, 197, 94, 0.3)',
         }
@@ -81,17 +81,17 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
         width: 48,
         height: 48,
         borderRadius: '50%',
-        bgcolor: 'rgba(34, 197, 94, 0.1)',
+        bgcolor: 'primary.main',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         mb: 2,
-        color: '#22c55e'
+        color: 'primary.contrastText'
       }}>
         <Icon size={24} />
       </Box>
-      <Typography variant="h6" fontWeight="bold" sx={{ color: 'white', mb: 1 }}>{title}</Typography>
-      <Typography variant="body2" sx={{ color: '#a1a1aa', lineHeight: 1.6 }}>{desc}</Typography>
+      <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', mb: 1 }}>{title}</Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>{desc}</Typography>
     </Box>
   </motion.div>
 );
@@ -99,14 +99,14 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
 const StatItem = ({ label, value, icon: Icon }) => (
   <Box sx={{ textAlign: 'center' }}>
     <Typography variant="h3" fontWeight="900" sx={{
-      background: 'linear-gradient(to right, #ffffff, #a1a1aa)',
+      background: 'linear-gradient(to right, text.primary, text.secondary)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       mb: 0.5
     }}>
       {value}
     </Typography>
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: '#22c55e' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: 'primary.main' }}>
       <Icon size={16} />
       <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
         {label}
@@ -126,7 +126,7 @@ export default function Home() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#0a0a0a', minHeight: '100vh', overflow: 'hidden', position: 'relative' }} ref={containerRef}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', overflow: 'hidden', position: 'relative' }} ref={containerRef}>
 
       {/* Background Ambience */}
       <GlowBlob color="#22c55e" size="600px" top="-200px" left="-100px" opacity={0.15} />
@@ -155,7 +155,7 @@ export default function Home() {
               <Typography variant="h1" sx={{
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 900,
-                color: 'white',
+                color: 'text.primary',
                 fontSize: { xs: '3rem', md: '5rem' },
                 lineHeight: 1.1,
                 mb: 3,
@@ -168,8 +168,8 @@ export default function Home() {
                   WebkitTextFillColor: 'transparent',
                 }}>Creating Future.</span>
               </Typography>
-              <Typography variant="h6" sx={{ color: '#a1a1aa', mb: 5, maxWidth: '600px', lineHeight: 1.6, fontWeight: 300 }}>
-                We bridge the gap for communities in need. Join us in providing clean water, education, and healthcare to over <span style={{ color: 'white', fontWeight: 600 }}>95 communities worldwide</span>.
+              <Typography variant="h6" sx={{ color: 'text.secondary', mb: 5, maxWidth: '600px', lineHeight: 1.6, fontWeight: 300 }}>
+                We bridge the gap for communities in need. Join us in providing clean water, education, and healthcare to over <span style={{ color: 'text.primary', fontWeight: 600 }}>95 communities worldwide</span>.
               </Typography>
 
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -201,7 +201,7 @@ export default function Home() {
                 <Button
                   onClick={() => scrollToSection("impact")}
                   sx={{
-                    color: 'white',
+                    color: 'text.primary',
                     border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '50px',
                     px: 4,
@@ -210,8 +210,8 @@ export default function Home() {
                     fontWeight: 600,
                     textTransform: 'none',
                     '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.05)',
-                      borderColor: 'white'
+                      bgcolor: 'background.paper',
+                      borderColor: 'text.primary'
                     }
                   }}
                 >
@@ -253,7 +253,7 @@ export default function Home() {
                 }}
               >
                 <Box sx={{
-                  bgcolor: 'rgba(10, 10, 10, 0.8)',
+                  bgcolor: 'background.paper',
                   backdropFilter: 'blur(16px)',
                   border: '1px solid rgba(255,255,255,0.1)',
                   p: 3,
@@ -262,12 +262,12 @@ export default function Home() {
                   boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Box sx={{ p: 1, bgcolor: 'rgba(34, 197, 94, 0.2)', borderRadius: '12px', color: '#22c55e' }}>
+                    <Box sx={{ p: 1, bgcolor: 'primary.main', borderRadius: '12px', color: 'primary.contrastText' }}>
                       <Globe size={20} />
                     </Box>
-                    <Typography sx={{ color: 'white', fontWeight: 600 }}>Global Reach</Typography>
+                    <Typography sx={{ color: 'text.primary', fontWeight: 600 }}>Global Reach</Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ color: '#a1a1aa' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     Expanding our network to 5 new countries this year.
                   </Typography>
                 </Box>
@@ -278,7 +278,7 @@ export default function Home() {
       </Container>
 
       {/* Stats Section */}
-      <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', bgcolor: 'rgba(255,255,255,0.01)' }}>
+      <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg" sx={{ py: 6 }}>
           <Grid container spacing={4} justifyContent="center">
             <Grid item xs={6} md={3}><StatItem label="Lives Impacted" value="12k+" icon={Heart} /></Grid>
@@ -292,8 +292,8 @@ export default function Home() {
       {/* Mission / Features Grid */}
       <Container maxWidth="lg" sx={{ py: 15, position: 'relative', zIndex: 1 }} id="mission">
         <Box sx={{ textAlign: 'center', mb: 10 }}>
-          <Typography variant="overline" sx={{ color: '#22c55e', fontWeight: 700, letterSpacing: '2px' }}>OUR MISSION</Typography>
-          <Typography variant="h2" sx={{ color: 'white', fontWeight: 900, mt: 1 }}>Transforming the World</Typography>
+          <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: '2px' }}>OUR MISSION</Typography>
+          <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 900, mt: 1 }}>Transforming the World</Typography>
         </Box>
 
         <Grid container spacing={4}>
@@ -330,8 +330,8 @@ export default function Home() {
         <GlowBlob color="#3b82f6" size="800px" top="20%" right="-400px" opacity={0.08} />
 
         <Container maxWidth="lg">
-          <Typography variant="h3" sx={{ color: 'white', fontWeight: 900, mb: 6, textAlign: 'center' }}>
-            Stories of <span style={{ color: '#22c55e' }}>Hope</span>
+          <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 900, mb: 6, textAlign: 'center' }}>
+            Stories of <span style={{ color: 'primary.main' }}>Hope</span>
           </Typography>
 
           <Grid container spacing={4}>
@@ -362,9 +362,9 @@ export default function Home() {
                       p: 4,
                       pt: 10
                     }}>
-                      <Typography variant="overline" sx={{ color: '#22c55e', fontWeight: 700 }}>{item.loc}</Typography>
-                      <Typography variant="h5" sx={{ color: 'white', fontWeight: 800 }}>{item.title}</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'white', mt: 1, gap: 1, opacity: 0.8 }}>
+                      <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700 }}>{item.loc}</Typography>
+                      <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 800 }}>{item.title}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.primary', mt: 1, gap: 1, opacity: 0.8 }}>
                         <Typography variant="body2">Read Story</Typography>
                         <ArrowUpRight size={16} />
                       </Box>
@@ -389,10 +389,10 @@ export default function Home() {
         }}>
           <GlowBlob color="#22c55e" size="300px" top="-50%" left="50%" opacity={0.2} />
 
-          <Typography variant="h2" sx={{ color: 'white', fontWeight: 900, mb: 3 }}>
+          <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 900, mb: 3 }}>
             Ready to Make a Difference?
           </Typography>
-          <Typography variant="h6" sx={{ color: '#a1a1aa', mb: 5, maxWidth: '600px', mx: 'auto' }}>
+          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 5, maxWidth: '600px', mx: 'auto' }}>
             Your contribution goes directly to the field. Join thousands of donors worldwide.
           </Typography>
 
@@ -422,7 +422,7 @@ export default function Home() {
               variant="outlined"
               size="large"
               sx={{
-                color: 'white',
+                color: 'text.primary',
                 borderColor: 'rgba(255,255,255,0.3)',
                 borderRadius: '50px',
                 px: 6,
@@ -430,7 +430,7 @@ export default function Home() {
                 fontSize: '1.1rem',
                 fontWeight: 700,
                 textTransform: 'none',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.05)', borderColor: 'white' }
+                '&:hover': { bgcolor: 'background.paper', borderColor: 'text.primary' }
               }}
             >
               Contact Us
@@ -440,22 +440,22 @@ export default function Home() {
       </Container>
 
       {/* Footer (Simplified for modern look) */}
-      <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', py: 6, bgcolor: '#050505' }}>
+      <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', py: 6, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} justifyContent="space-between" alignItems="center">
             <Grid item xs={12} md={4}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Heart size={24} color="#22c55e" fill="#22c55e" />
-                <Typography variant="h6" sx={{ color: 'white', fontWeight: 800 }}>CHANGING LIVES</Typography>
+                <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 800 }}>CHANGING LIVES</Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: '#666' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 © 2025 Changing Lives Foundation.<br />All rights reserved.
               </Typography>
             </Grid>
             <Grid item xs={12} md={4} sx={{ display: 'flex', gap: 4, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-              <Typography component={Link} to="/about" sx={{ color: '#a1a1aa', textDecoration: 'none', '&:hover': { color: 'white' } }}>About</Typography>
-              <Typography component={Link} to="/c" sx={{ color: '#a1a1aa', textDecoration: 'none', '&:hover': { color: 'white' } }}>Contact</Typography>
-              <Typography component={Link} to="/privacy" sx={{ color: '#a1a1aa', textDecoration: 'none', '&:hover': { color: 'white' } }}>Privacy</Typography>
+              <Typography component={Link} to="/about" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'text.primary' } }}>About</Typography>
+              <Typography component={Link} to="/c" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'text.primary' } }}>Contact</Typography>
+              <Typography component={Link} to="/privacy" sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'text.primary' } }}>Privacy</Typography>
             </Grid>
           </Grid>
         </Container>

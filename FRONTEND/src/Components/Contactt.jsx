@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Container, Grid, TextField, Button, Typography, Avatar, InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import MessageIcon from '@mui/icons-material/Message';
@@ -21,6 +22,7 @@ const BackgroundStyle = {
 };
 
 export default function Contactt() {
+  const theme = useTheme();
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', message: '' });
   const [errors, setErrors] = useState({});
   const [open, setOpen] = useState(false);
@@ -63,11 +65,11 @@ export default function Contactt() {
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={5}>
               <Box sx={{ p: { xs: 2, sm: 4 } }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#08306b', mb: 1 }}>Get in Touch</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>Get in Touch</Typography>
                 <Typography sx={{ color: 'rgba(8,48,107,0.7)', mb: 2 }}>I'd love to hear from you! Whether you have a question or just want to say hi, feel free to drop a message.</Typography>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                  <Avatar sx={{ bgcolor: '#dff6ff', color: '#08306b' }}>📧</Avatar>
+                  <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#dff6ff', color: theme.palette.mode === 'dark' ? 'primary.contrastText' : '#08306b' }}>📧</Avatar>
                   <Typography sx={{ color: 'rgba(8,48,107,0.7)' }}>youremail@example.com</Typography>
                 </Box>
 
@@ -151,7 +153,7 @@ export default function Contactt() {
 
                     <Grid item xs={12}>
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button type="submit" variant="contained" endIcon={<SendIcon />} sx={{ background: 'linear-gradient(90deg,#bfe8ff,#92d1ff)', color: '#08306b', fontWeight: 700, padding: '12px 20px', borderRadius: 2 }}>Send Message</Button>
+                        <Button type="submit" variant="contained" endIcon={<SendIcon />} sx={{ background: 'primary.main', color: 'primary.contrastText', fontWeight: 700, padding: '12px 20px', borderRadius: 2 }}>Send Message</Button>
                       </Box>
                     </Grid>
                   </Grid>

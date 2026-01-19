@@ -137,14 +137,14 @@ const DonationPage = () => {
         minHeight: "100vh",
         py: 6,
         px: 2,
-        background: "linear-gradient(135deg, #e0f2ff, #f6fbff)",
+        background: 'background.default',
       }}
     >
       <Box
         sx={{
           maxWidth: 1100,
           mx: "auto",
-          bgcolor: "rgba(255,255,255,0.9)",
+          bgcolor: "background.paper",
           borderRadius: 4,
           boxShadow: "0 20px 40px rgba(15,30,60,0.18)",
           p: { xs: 3, md: 5 },
@@ -156,13 +156,13 @@ const DonationPage = () => {
             fontWeight: 700,
             mb: 1,
             fontSize: { xs: "2rem", md: "2.4rem" },
-            color: "#12325a",
+            color: "text.primary",
           }}
         >
           Support Our Cause
         </Typography>
 
-        <Typography sx={{ mb: 4, color: "#51637b" }}>
+        <Typography sx={{ mb: 4, color: "text.secondary" }}>
           Choose how you'd like to help — money or needed items.
         </Typography>
 
@@ -200,7 +200,7 @@ const DonationPage = () => {
         <Box sx={{ mt: 4 }}>
           <Typography
             variant="h6"
-            sx={{ mb: 2, color: "#12325a", fontWeight: 600 }}
+            sx={{ mb: 2, color: "text.primary", fontWeight: 600 }}
           >
             Notes / Pickup Info
           </Typography>
@@ -299,7 +299,7 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
 
   return (
     <>
-      <Card sx={{ borderRadius: 4, boxShadow: "0 12px 24px rgba(15,30,60,0.12)" }}>
+      <Card sx={{ borderRadius: 4, boxShadow: "0 12px 24px rgba(15,30,60,0.12)", bgcolor: 'background.paper' }}>
         <CardContent>
           <Box sx={{ textAlign: "center", mb: 2 }}>
             <Box
@@ -312,12 +312,13 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "radial-gradient(circle, #fffde7, #ffe082)",
+                background: "primary.main",
+                color: 'primary.contrastText',
               }}
             >
               <span style={{ fontSize: 30 }}>💵</span>
             </Box>
-            <Typography variant="h6">Money Donation</Typography>
+            <Typography variant="h6" sx={{ color: 'text.primary' }}>Money Donation</Typography>
           </Box>
 
           <TextField
@@ -329,7 +330,7 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
             sx={{ mb: 2 }}
           />
 
-          <Box sx={{ mb: 2, textAlign: 'center', color: '#556' }}>
+          <Box sx={{ mb: 2, textAlign: 'center', color: 'text.secondary' }}>
             <Typography variant="caption"></Typography>
           </Box>
 
@@ -339,8 +340,8 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
         </CardContent>
       </Card>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle> Checkout</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+        <DialogTitle sx={{ color: 'text.primary' }}> Checkout</DialogTitle>
         <DialogContent dividers>
           <TextField label="Cardholder name" fullWidth value={cardName} onChange={(e) => setCardName(e.target.value)} sx={{ mb: 2 }} />
           <TextField label="Email" fullWidth value={cardEmail} onChange={(e) => setCardEmail(e.target.value)} sx={{ mb: 2 }} />
@@ -350,7 +351,7 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
             <TextField label="CVC" value={cardCVC} onChange={(e) => setCardCVC(e.target.value)} sx={{ width: 120 }} />
           </Box>
           <Box sx={{ mt: 2 }}>
-            <Typography variant="body2">Amount: ₹{Number(amount).toLocaleString()}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.primary' }}>Amount: ₹{Number(amount).toLocaleString()}</Typography>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -431,8 +432,8 @@ const SuccessPopup = ({ open, onClose, title, message }) => {
           </Box>
         </Box>
 
-        <Box sx={{ mt: 2, bgcolor: 'white', p: 2.5, borderRadius: 2, boxShadow: '0 10px 30px rgba(15,30,60,0.08)' }}>
-          <Typography variant="h6" fontWeight={800}>{title || 'Payment Successful'}</Typography>
+        <Box sx={{ mt: 2, bgcolor: 'background.paper', p: 2.5, borderRadius: 2, boxShadow: '0 10px 30px rgba(15,30,60,0.08)' }}>
+          <Typography variant="h6" fontWeight={800} sx={{ color: 'text.primary' }}>{title || 'Payment Successful'}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{message || 'Thanks for your generous donation!'}</Typography>
         </Box>
       </Box>
@@ -444,7 +445,7 @@ const SuccessPopup = ({ open, onClose, title, message }) => {
    ITEM CARD
 ---------------------------------------------------- */
 const ItemCard = ({ icon, title, subtitle, value, placeholder, onChange }) => (
-  <Card sx={{ borderRadius: 4, boxShadow: "0 12px 24px rgba(15,30,60,0.12)" }}>
+  <Card sx={{ borderRadius: 4, boxShadow: "0 12px 24px rgba(15,30,60,0.12)", bgcolor: 'background.paper' }}>
     <CardContent>
       <Box sx={{ textAlign: "center", mb: 2 }}>
         <Box
@@ -457,13 +458,14 @@ const ItemCard = ({ icon, title, subtitle, value, placeholder, onChange }) => (
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "radial-gradient(circle, #e3f2fd, #bbdefb)",
+            background: "secondary.main",
+            color: 'secondary.contrastText',
           }}
         >
           <span style={{ fontSize: 30 }}>{icon}</span>
         </Box>
-        <Typography variant="h6">{title}</Typography>
-        <Typography sx={{ fontSize: 13, color: "#6b7a90" }}>{subtitle}</Typography>
+        <Typography variant="h6" sx={{ color: 'text.primary' }}>{title}</Typography>
+        <Typography sx={{ fontSize: 13, color: "text.secondary" }}>{subtitle}</Typography>
       </Box>
 
       <TextField
