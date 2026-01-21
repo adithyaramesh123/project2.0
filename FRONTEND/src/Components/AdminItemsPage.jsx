@@ -13,6 +13,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 
 const AdminItemsPage = () => {
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -36,7 +37,7 @@ const AdminItemsPage = () => {
     try {
       const token = getToken();
 
-      const res = await axios.get('/api/admin/items', {
+      const res = await axios.get(`${baseurl}/api/admin/items`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -68,14 +69,14 @@ const AdminItemsPage = () => {
 
       if (editItem) {
         // UPDATE
-        await axios.put(`/api/admin/items/${editItem._id}`, formData, {
+        await axios.put(`${baseurl}/api/admin/items/${editItem._id}`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
       } else {
         // CREATE
-        await axios.post('/api/admin/items', formData, {
+        await axios.post(`${baseurl}/api/admin/items`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -94,7 +95,7 @@ const AdminItemsPage = () => {
     try {
       const token = getToken();
 
-      await axios.delete(`/api/admin/items/${id}`, {
+      await axios.delete(`${baseurl}/api/admin/items/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

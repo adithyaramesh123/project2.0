@@ -36,6 +36,7 @@ const getCategoryIcon = (category) => {
 };
 
 const DonationPage = () => {
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const [form, setForm] = useState({
     money: "",
     notes: "",
@@ -57,7 +58,7 @@ const DonationPage = () => {
 
   const fetchAdminItems = async () => {
     try {
-      const res = await axios.get("/api/donations/items");
+      const res = await axios.get(`${baseurl}/api/donations/items`);
 
       const cleaned = Array.isArray(res.data)
         ? res.data.filter((i) => i && i._id)
@@ -100,7 +101,7 @@ const DonationPage = () => {
         }))
         .filter((i) => i.quantity > 0);
 
-      await axios.post("/api/donations/item", {
+      await axios.post(`${baseurl}/api/donations/item`, {
         userId: "testUser",
         items,
         notes: form.notes,
@@ -273,7 +274,7 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
     setProcessing(true);
     try {
       // Call backend with provider indicated as stripe_dummy
-      const res = await axios.post('/api/donations/money', {
+      const res = await axios.post(`${baseurl}/api/donations/money`, {
         amount: Number(amount),
         userId: 'testUser',
         provider: 'stripe_dummy',

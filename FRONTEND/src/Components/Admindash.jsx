@@ -282,7 +282,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
         setProcessing(prev => ({ ...prev, [id]: 'approving' }));
         try {
             const token = getToken();
-            await axios.put(`/api/donations/admin/approve/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`${baseurl}/api/donations/admin/approve/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
             if (reloadData) reloadData();
             // notify other components (assignments) to refresh
             window.dispatchEvent(new Event('donationUpdated'));
@@ -299,7 +299,7 @@ function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reload
         setProcessing(prev => ({ ...prev, [id]: 'rejecting' }));
         try {
             const token = getToken();
-            await axios.put(`/api/donations/admin/reject/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`${baseurl}/api/donations/admin/reject/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
             if (reloadData) reloadData();
             window.dispatchEvent(new Event('donationUpdated'));
             setSnackbar({ open: true, message: 'Donation rejected', severity: 'info' });
@@ -540,7 +540,7 @@ function AdminOrganizationPage() {
         setLoading(true);
         try {
             const token = getToken();
-            const res = await axios.get('/api/admin/organizations', {
+            const res = await axios.get(`${baseurl}/api/admin/organizations`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const cleaned = res.data.map(org => ({ ...org, id: org._id }));
@@ -556,7 +556,7 @@ function AdminOrganizationPage() {
     const updateStatus = async (id, status) => {
         const token = getToken();
         try {
-            await axios.patch(`/api/admin/organizations/status/${id}`, { status }, {
+            await axios.patch(`${baseurl}/api/admin/organizations/status/${id}`, { status }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setOrganizations(prev => prev.map(org => 
@@ -581,7 +581,7 @@ function AdminOrganizationPage() {
         setSubmittingOrg(true);
         try {
             const token = getToken();
-            const res = await axios.post('/api/admin/organizations', newOrg, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post(`${baseurl}/api/admin/organizations`, newOrg, { headers: { Authorization: `Bearer ${token}` } });
             const org = res.data.org;
             setOrganizations(prev => [{ ...org, id: org._id }, ...prev]);
             setNewOrg({ name: '', contactEmail: '', location: '' });
@@ -752,11 +752,11 @@ function AdminItemAssignmentPage() {
         try {
             const token = getToken();
 
-            const donationRes = await axios.get('/api/donations/admin/unassigned-items', {
+            const donationRes = await axios.get(`${baseurl}/api/donations/admin/unassigned-items`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            const orgRes = await axios.get('/api/admin/organizations?status=Active', {
+            const orgRes = await axios.get(`${baseurl}/api/admin/organizations?status=Active`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
@@ -788,7 +788,7 @@ function AdminItemAssignmentPage() {
         try {
             const token = getToken();
             
-            await axios.patch(`/api/donations/admin/assign/${donationId}`, { organizationId: orgId }, {
+            await axios.patch(`${baseurl}/api/donations/admin/assign/${donationId}`, { organizationId: orgId }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -908,7 +908,7 @@ function AdminUsersPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await axios.get('/api/users', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${baseurl}/api/users`, { headers: { Authorization: `Bearer ${token}` } });
       setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Fetch users error', err);
@@ -922,7 +922,7 @@ function AdminUsersPage() {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     try {
       const token = getToken();
-      const res = await axios.patch(`/api/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.patch(`${baseurl}/api/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data && res.data.user) setUsers(prev => prev.map(u => u._id === id ? res.data.user : u));
       setSnack({ open: true, message: 'User role updated', severity: 'success' });
     } catch (err) {
@@ -963,6 +963,7 @@ function AdminUsersPage() {
 // --------------------------------------------------------------------
 
 export default function AdminDashboard() {
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const [currentTab, setCurrentTab] = useState("Analytics");
   
   // State for Analytics data (lifted up for potential refresh)
@@ -994,10 +995,10 @@ export default function AdminDashboard() {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [statsRes, moneyRes, itemRes, recentRes] = await Promise.all([
-            axios.get("/api/donations/admin/stats", { headers }),
-            axios.get("/api/donations/admin/analytics/money", { headers }),
-            axios.get("/api/donations/admin/analytics/items", { headers }),
-            axios.get("/api/donations/admin/recent-donations", { headers }),
+            axios.get(`${baseurl}/api/donations/admin/stats`, { headers }),
+            axios.get(`${baseurl}/api/donations/admin/analytics/money`, { headers }),
+            axios.get(`${baseurl}/api/donations/admin/analytics/items`, { headers }),
+            axios.get(`${baseurl}/api/donations/admin/recent-donations`, { headers }),
         ]);
 
         setStats(statsRes.data);
@@ -1169,7 +1170,7 @@ function AdminRequestsPage() {
         setLoading(true);
         try {
             const token = getToken();
-            const res = await axios.get('/api/admin/requests', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.get(`${baseurl}/api/admin/requests`, { headers: { Authorization: `Bearer ${token}` } });
             setRequests(res.data);
         } catch (err) {
             console.error('Fetch requests error', err);
@@ -1182,7 +1183,7 @@ function AdminRequestsPage() {
     const fetchUnassignedDonations = async () => {
         try {
             const token = getToken();
-            const res = await axios.get('/api/donations/admin/unassigned-item-lines', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.get(`${baseurl}/api/donations/admin/unassigned-item-lines`, { headers: { Authorization: `Bearer ${token}` } });
             setUnassignedDonations(res.data);
         } catch (err) {
             console.error('Fetch unassigned item lines failed', err);
@@ -1211,7 +1212,7 @@ function AdminRequestsPage() {
         try {
             const token = getToken();
             const [donationId, itemIndex] = pickedDonation.split(':');
-            await axios.patch(`/api/admin/requests/assign-item/${selectedRequest._id}`, { donationId, itemIndex: Number(itemIndex), quantity: Number(assignQuantity) }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${baseurl}/api/admin/requests/assign-item/${selectedRequest._id}`, { donationId, itemIndex: Number(itemIndex), quantity: Number(assignQuantity) }, { headers: { Authorization: `Bearer ${token}` } });
             setProcessing(false);
             closeAssignDialog();
             fetchRequests();
@@ -1227,7 +1228,7 @@ function AdminRequestsPage() {
     const updateReqStatus = async (id, status) => {
         try {
             const token = getToken();
-            await axios.patch(`/api/admin/requests/status/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${baseurl}/api/admin/requests/status/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
             fetchRequests();
         } catch (err) {
             console.error('Update request status error', err);

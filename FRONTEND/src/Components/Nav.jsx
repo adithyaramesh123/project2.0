@@ -167,7 +167,7 @@ const Nav = () => {
               edge="start"
               color="inherit"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }}
+              sx={{ mr: 2, display: { xs: 'flex', md: 'none' }, color: darkMode ? 'white' : 'text.primary' }}
             >
               {mobileMenuOpen ? <Close /> : <Menu />}
             </IconButton>
@@ -181,7 +181,7 @@ const Nav = () => {
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>{renderLinks()}</Box>
 
               {/* Theme toggle */}
-              <IconButton onClick={toggleTheme} color="inherit">
+              <IconButton onClick={toggleTheme} color="inherit" sx={{ color: darkMode ? 'white' : 'text.primary' }}>
                 {darkMode ? <Brightness7 /> : <Brightness4 />}
               </IconButton>
 
@@ -218,7 +218,7 @@ const Nav = () => {
             sx={{ display: { xs: 'block', md: 'none' } }}
             PaperProps={{
               sx: {
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                bgcolor: darkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)',
                 color: 'text.primary',
                 backdropFilter: 'blur(10px)',
                 width: '250px'

@@ -5,6 +5,7 @@ import axios from 'axios';
 // token is read from localStorage directly
 
 export default function AdminOrganizationView() {
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const { id } = useParams();
   const navigate = useNavigate();
   const [org, setOrg] = useState(null);
@@ -27,7 +28,7 @@ export default function AdminOrganizationView() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`/api/admin/organizations/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${baseurl}/api/admin/organizations/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setOrg(res.data.organization);
       setRequests(res.data.requests);
     } catch (err) {
