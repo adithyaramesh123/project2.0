@@ -23,18 +23,17 @@ import {
   ShieldCheck,
   ArrowUpRight
 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, memo } from "react";
 
 // --- Components ---
 
-const GlowBlob = ({ color, size, top, left, blur = "100px", opacity = 0.4, delay = 0 }) => (
+const GlowBlob = memo(({ color, size, top, left, blur = "100px", opacity = 0.4, delay = 0 }) =>
   <motion.div
     animate={{
       scale: [1, 1.2, 1],
       opacity: [opacity, opacity * 0.8, opacity],
     }}
     transition={{
-      placeholder: "fade",
       duration: 8,
       repeat: Infinity,
       ease: "easeInOut",
@@ -54,7 +53,7 @@ const GlowBlob = ({ color, size, top, left, blur = "100px", opacity = 0.4, delay
   />
 );
 
-const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
+const FeatureCard = memo(({ icon: Icon, title, desc, delay }) =>
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -96,7 +95,7 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
   </motion.div>
 );
 
-const StatItem = ({ label, value, icon: Icon }) => (
+const StatItem = memo(({ label, value, icon: Icon }) => (
   <Box sx={{ textAlign: 'center' }}>
     <Typography variant="h3" fontWeight="900" sx={{
       background: 'linear-gradient(to right, text.primary, text.secondary)',
@@ -113,7 +112,7 @@ const StatItem = ({ label, value, icon: Icon }) => (
       </Typography>
     </Box>
   </Box>
-);
+));
 
 export default function Home() {
   const containerRef = useRef(null);
@@ -378,7 +377,7 @@ export default function Home() {
       </Box>
 
       {/* CTA Section */}
-      <Container maxWidth="md" sx={{ py: 15, textAlign: 'center', id: "get-involved" }}>
+      <Container maxWidth="md" sx={{ py: 15, textAlign: 'center' }} id="get-involved">
         <Box sx={{
           background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1))',
           borderRadius: '40px',

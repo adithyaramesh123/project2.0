@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -9,7 +9,7 @@ import Login from './Components/Login'
 import OrganizationLogin from './Components/OrganizationLogin'
 import Contactt from './Components/Contactt'
 import Nav from './Components/Nav'
-import Home from './Components/Home'
+const Home = lazy(() => import('./Components/Home'))
 import About from './Components/About'
 import Admindash from './Components/Admindash'
 
@@ -27,7 +27,8 @@ function App() {
   return (
     <ThemeProviderWrapper>
       <Nav />
-      <Routes>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
         <Route path='/s' element={<Signup/>}/>
         <Route path='/L' element={<Login/>}/>
             <Route path='/org/login' element={<OrganizationLogin/>}/>
@@ -49,6 +50,7 @@ function App() {
   <Route path="/admin/org" element={<Organization />} />
   <Route path="/admin/orgs/:id" element={<AdminOrganizationView />} />
       </Routes>
+      </Suspense>
     </ThemeProviderWrapper>
   )
 }
