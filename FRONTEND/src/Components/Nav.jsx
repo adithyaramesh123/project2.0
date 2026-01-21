@@ -161,7 +161,7 @@ const Nav = () => {
             zIndex: (theme) => theme.zIndex.appBar + 1
           }}
         >
-          <Toolbar sx={{ display: 'flex', gap: 2 }}>
+          <Toolbar sx={{ display: 'flex', gap: { xs: 1, md: 2 }, alignItems: 'center', minHeight: { xs: 56, md: 64 } }}>
             <IconButton
               size="large"
               edge="start"
@@ -171,9 +171,9 @@ const Nav = () => {
             >
               {mobileMenuOpen ? <Close /> : <Menu />}
             </IconButton>
-            <Button component={Link} to={'/'} sx={{ display: 'flex', alignItems: 'center', gap: 1, textTransform: 'none', color: darkMode ? 'white' : 'text.primary', '&:hover': { opacity: 0.8 } }}>
-              <Handshake sx={{ color: '#22c55e', fontSize: { xs: 20, md: 28 } }} />
-              <Typography variant="h6" sx={{ fontWeight: 700, color: darkMode ? 'white' : 'text.primary', display: { xs: 'none', sm: 'block' }, letterSpacing: '-0.5px' }}>CHANGING LIVES</Typography>
+            <Button component={Link} to={'/'} sx={{ display: 'flex', alignItems: 'center', gap: 1, textTransform: 'none', color: darkMode ? 'white' : 'text.primary', '&:hover': { opacity: 0.8 }, minWidth: 'auto' }}>
+              <Handshake sx={{ color: '#22c55e', fontSize: { xs: 24, sm: 28, md: 32 } }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, color: darkMode ? 'white' : 'text.primary', display: { xs: 'none', sm: 'block' }, fontSize: { sm: '1rem', md: '1.25rem' }, letterSpacing: '-0.5px' }}>CHANGING LIVES</Typography>
             </Button>
             <Box sx={{ flexGrow: 1 }}></Box>
             <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
@@ -212,15 +212,20 @@ const Nav = () => {
 
           {/* Mobile Menu Drawer */}
           <Drawer
-            anchor="top"
+            anchor="left"
             open={mobileMenuOpen}
             onClose={handleMobileMenuClose}
             sx={{ display: { xs: 'block', md: 'none' } }}
             PaperProps={{
               sx: {
-                bgcolor: 'background.paper',
-                color: 'text.primary'
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                color: 'text.primary',
+                backdropFilter: 'blur(10px)',
+                width: '250px'
               }
+            }}
+            BackdropProps={{
+              sx: { bgcolor: 'rgba(0, 0, 0, 0.3)' }
             }}
           >
             <Box sx={{ width: '100%', pt: 2, pb: 2 }}>
