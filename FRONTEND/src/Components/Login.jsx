@@ -61,6 +61,8 @@ const Login = () => {
       .then((res) => {
         if (res.data?.user?.role) {
           sessionStorage.setItem("role", res.data.user.role);
+          sessionStorage.setItem("userId", res.data.user._id);
+          sessionStorage.setItem("userName", res.data.user.fname);
           window.dispatchEvent(new Event('roleChanged'));
         }
         if (res.status === 200) {

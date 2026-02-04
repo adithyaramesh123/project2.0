@@ -102,7 +102,7 @@ const DonationPage = () => {
         .filter((i) => i.quantity > 0);
 
       await axios.post(`${baseurl}/api/donations/item`, {
-        userId: "testUser",
+        userId: sessionStorage.getItem('userId') || "testUser",
         items,
         notes: form.notes,
         address: form.address,
@@ -246,6 +246,7 @@ const DonationPage = () => {
    MONEY DONATION CARD
 ---------------------------------------------------- */
 const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const [loading, setLoading] = useState(false);
 
   // Dummy Stripe modal state
@@ -276,7 +277,7 @@ const MoneyCard = ({ amount, onChangeAmount, onSuccess }) => {
       // Call backend with provider indicated as stripe_dummy
       const res = await axios.post(`${baseurl}/api/donations/money`, {
         amount: Number(amount),
-        userId: 'testUser',
+        userId: sessionStorage.getItem('userId') || 'testUser',
         provider: 'stripe_dummy',
         providerPaymentId: `stripe_dummy_${Date.now()}`,
         card: { number: cardNumber, expiry: cardExpiry, cvc: cardCVC, name: cardName, email: cardEmail }
@@ -375,7 +376,7 @@ const SuccessPopup = ({ open, onClose, title, message }) => {
   useEffect(() => {
     if (open) {
       // play Lottie animation (if available)
-      try { lottieRef.current && lottieRef.current.play && lottieRef.current.play(); } catch (e) {}
+      try { lottieRef.current && lottieRef.current.play && lottieRef.current.play(); } catch (e) { }
       // play short chime
       playChime();
     }

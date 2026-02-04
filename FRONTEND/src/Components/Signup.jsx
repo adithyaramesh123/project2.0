@@ -69,7 +69,7 @@ const Signup = () => {
             alert(res.data?.message || 'Signed up successfully');
             navigate('/L');
         } catch (err) {
-            alert('Sign-up failed. Try again.');
+            alert(err.response?.data?.message || 'Sign-up failed. Try again.');
         }
     };
 

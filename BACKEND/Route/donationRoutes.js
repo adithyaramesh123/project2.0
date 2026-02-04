@@ -265,18 +265,31 @@ router.get("/admin/stats", async (_req, res) => {
       .filter((d) => d.type === "Money")
       .reduce((sum, d) => sum + d.amount, 0);
 
-    const topDonor = await Donation.aggregate([
+    const topDonors = await Donation.aggregate([
       { $match: { type: "Money" } },
       { $group: { _id: "$userId", amount: { $sum: "$amount" } } },
       { $sort: { amount: -1 } },
-      { $limit: 1 },
+      { $limit: 3 },
     ]);
+
+    // Populate user details for the top donors
+    const enrichedTopDonors = await Promise.all(topDonors.map(async (d) => {
+      let user = null;
+      if (mongoose.Types.ObjectId.isValid(d._id)) {
+        user = await User.findById(d._id).select('fname ename').lean();
+      }
+      return {
+        ...d,
+        name: user ? (user.fname || user.ename) : (d._id || 'Anonymous'),
+        ...user
+      };
+    }));
 
     res.json({
       users,
       donations: donations.length,
       totalAmount,
-      topDonor: topDonor.length ? topDonor[0] : null,
+      topDonors: enrichedTopDonors,
     });
   } catch (error) {
     console.error("📊 Stats Error:", error.message);
@@ -334,18 +347,36 @@ router.get("/admin/recent-donations", async (_req, res) => {
       const obj = d.toObject();
       let user = null;
       if (obj.userId) {
-        // If userId is an ObjectId, fetch by id; otherwise try by email
-        if (mongoose.Types.ObjectId.isValid(obj.userId)) {
-          user = await User.findById(obj.userId).select('-password -__v').lean();
-        } else if (typeof obj.userId === 'string') {
-          const u = await User.findOne({ ename: String(obj.userId).toLowerCase().trim() }).select('-password -__v').lean();
-          if (u) user = u;
+        // Try robust lookups: by ObjectId, by ename (lowercased), and fallback to direct id match
+        try {
+          if (mongoose.Types.ObjectId.isValid(obj.userId)) {
+            user = await User.findById(obj.userId).select('-password -__v').lean();
+          }
+        } catch (err) {
+          // ignore and continue to other lookups
+        }
+
+        if (!user) {
+          const lookupVal = String(obj.userId).toLowerCase().trim();
+          const orConditions = [{ ename: lookupVal }];
+          if (mongoose.Types.ObjectId.isValid(obj.userId)) {
+            orConditions.push({ _id: obj.userId });
+          }
+          user = await User.findOne({ $or: orConditions }).select('-password -__v').lean();
         }
       }
-      obj.user = user;
+      obj.user = user || null;
+      // Compute a donorName to return consistently to the frontend.
+      obj.donorName = (user && (user.fname || user.ename)) || obj.name || obj.userId || 'Anonymous';
       return obj;
     }));
 
+    // DEBUG: log a compact view of enriched donations to help diagnose missing names
+    try {
+      console.log('recent-donations (enriched) sample:', enriched.slice(0, 10).map(e => ({ _id: String(e._id).slice(0, 8), donorName: e.donorName, userFname: e.user?.fname, userEname: e.user?.ename, userId: e.userId })));
+    } catch (err) {
+      // ignore logging errors
+    }
     res.json(enriched);
   } catch (error) {
     console.error('Recent donations error', error);
@@ -360,7 +391,7 @@ router.get("/admin/recent-donations", async (_req, res) => {
 router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
   try {
     // Include donations that are fully approved or partially assigned (have remaining items)
-    const unassigned = await Donation.find({ type: 'Item', status: { $in: ['Approved','PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
+    const unassigned = await Donation.find({ type: 'Item', status: { $in: ['Approved', 'PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
     res.json(unassigned);
   } catch (err) {
     console.error('Unassigned items fetch error', err);
@@ -373,14 +404,14 @@ router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
 router.get('/admin/unassigned-item-lines', adminAuth, async (_req, res) => {
   try {
     // Include donations that are Approved or PartiallyAssigned so remaining items are visible
-    const donations = await Donation.find({ type: 'Item', status: { $in: ['Approved','PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
+    const donations = await Donation.find({ type: 'Item', status: { $in: ['Approved', 'PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
     const lines = [];
     donations.forEach(d => {
       (d.itemDetails || []).forEach((it, idx) => {
         if (!it || !it.quantity || it.quantity <= 0) return;
         lines.push({
           donationId: d._id,
-          donationShort: String(d._id).substring(0,8),
+          donationShort: String(d._id).substring(0, 8),
           itemIndex: idx,
           name: it.name,
           quantity: it.quantity,

@@ -1,1347 +1,765 @@
-// import React, { useEffect, useState } from "react";
-// import PeopleIcon from "@mui/icons-material/People";
-// import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-// import FavoriteIcon from "@mui/icons-material/Favorite";
-// import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-// import {
-//   Box,
-//   Typography,
-//   Paper,
-//   Grid,
-//   Card,
-//   CardContent,
-//   Avatar,
-//   List,
-//   ListItem,
-//   ListItemAvatar,
-//   ListItemText,
-// } from "@mui/material";
-
-// const mockStats = {
-// users: 1240,
-// donations: 320,
-// totalAmount: 45200,
-// topDonor: { name: "Jane Doe", amount: 5000 },
-// };
-
-// const mockRecentDonations = [
-// { name: "Alice Smith", amount: 200, date: "2024-06-10" },
-// { name: "Bob Johnson", amount: 150, date: "2024-06-09" },
-// { name: "Charlie Lee", amount: 300, date: "2024-06-08" },
-// { name: "Dana White", amount: 100, date: "2024-06-07" },
-// ];
-
-// export default function Admindash() {
-// const [stats, setStats] = useState(mockStats);
-// const [recentDonations, setRecentDonations] = useState(mockRecentDonations);
-
-// // In real app, fetch stats and donations from API
-import AdminOrganizationView from './AdminOrganizationView'; // New import added
-// useEffect(() => {
-//     // fetchStats().then(setStats);
-//     // fetchRecentDonations().then(setRecentDonations);
-// }, []);
-
-// return (
-//     <Box sx={{ p: 4, background: "#f4f6f8", minHeight: "100vh" }}>
-//         <Typography variant="h4" gutterBottom fontWeight={700}>
-//             Admin Dashboard
-//         </Typography>
-//         <Grid container spacing={3} mb={4}>
-//             <Grid item xs={12} sm={6} md={3}>
-//                 <Card sx={{ display: "flex", alignItems: "center", p: 2 }}>
-//                     <Avatar sx={{ bgcolor: "#1976d2", mr: 2 }}>
-//                         <PeopleIcon />
-//                     </Avatar>
-//                     <CardContent sx={{ flex: 1 }}>
-//                         <Typography variant="h6">{stats.users}</Typography>
-//                         <Typography color="text.secondary" fontSize={14}>
-//                             Users
-//                         </Typography>
-//                     </CardContent>
-//                 </Card>
-//             </Grid>
-//             <Grid item xs={12} sm={6} md={3}>
-//                 <Card sx={{ display: "flex", alignItems: "center", p: 2 }}>
-//                     <Avatar sx={{ bgcolor: "#43a047", mr: 2 }}>
-//                         <AttachMoneyIcon />
-//                     </Avatar>
-//                     <CardContent sx={{ flex: 1 }}>
-//                         <Typography variant="h6">{stats.donations}</Typography>
-//                         <Typography color="text.secondary" fontSize={14}>
-//                             Donations
-//                         </Typography>
-//                     </CardContent>
-//                 </Card>
-//             </Grid>
-//             <Grid item xs={12} sm={6} md={3}>
-//                 <Card sx={{ display: "flex", alignItems: "center", p: 2 }}>
-//                     <Avatar sx={{ bgcolor: "#fbc02d", mr: 2 }}>
-//                         <TrendingUpIcon />
-//                     </Avatar>
-//                     <CardContent sx={{ flex: 1 }}>
-//                         <Typography variant="h6">${stats.totalAmount.toLocaleString()}</Typography>
-//                         <Typography color="text.secondary" fontSize={14}>
-//                             Total Amount
-//                         </Typography>
-//                     </CardContent>
-//                 </Card>
-//             </Grid>
-//             <Grid item xs={12} sm={6} md={3}>
-//                 <Card sx={{ display: "flex", alignItems: "center", p: 2 }}>
-//                     <Avatar sx={{ bgcolor: "#e53935", mr: 2 }}>
-//                         <FavoriteIcon />
-//                     </Avatar>
-//                     <CardContent sx={{ flex: 1 }}>
-//                         <Typography variant="h6">{stats.topDonor.name}</Typography>
-//                         <Typography color="text.secondary" fontSize={14}>
-//                             Top Donor (${stats.topDonor.amount})
-//                         </Typography>
-//                     </CardContent>
-//                 </Card>
-//             </Grid>
-//         </Grid>
-//         <Paper sx={{ p: 3 }}>
-//             <Typography variant="h6" gutterBottom>
-//                 Recent Donations
-//             </Typography>
-//             <List>
-//                 {recentDonations.map((donation, idx) => (
-//                     <ListItem key={idx} divider>
-//                         <ListItemAvatar>
-//                             <Avatar sx={{ bgcolor: "#1976d2" }}>
-//                                 <AttachMoneyIcon />
-//                             </Avatar>
-//                         </ListItemAvatar>
-//                         <ListItemText
-//                             primary={`${donation.name} donated $${donation.amount}`}
-//                             secondary={donation.date}
-//                         />
-//                     </ListItem>
-//                 ))}
-//             </List>
-//         </Paper>
-//     </Box>
-// );
-// }
-
-import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Box,
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Avatar,
-  Paper,
+    Box,
+    Typography,
+    Paper,
+    Grid,
+    Card,
+    CardContent,
+    Avatar,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    IconButton,
+    Tooltip,
     TextField,
-  Button,
-  Chip,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemAvatar,
-  ListItemText,
-  Tabs, // NEW
-  Tab, // NEW
-  Table, // NEW
-  TableBody, // NEW
-  TableCell, // NEW
-  TableContainer, // NEW
-  TableHead, // NEW
-  TableRow, // NEW
-  IconButton, // NEW
-  Drawer, // NEW
-  Toolbar, // NEW
-  Divider, // NEW
-  Tooltip as MuiTooltip, // NEW
-  Select, // NEW
-  MenuItem, // NEW
-  FormControl, // NEW
-  InputLabel, // NEW
-  InputAdornment, // NEW (for search)
-  CircularProgress // NEW
-    ,Snackbar,Alert
-    ,Dialog,DialogTitle,DialogContent,DialogActions,Radio,RadioGroup,FormControlLabel
+    InputAdornment,
+    Button,
+    Chip,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from "@mui/material";
 
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
-import { DataGrid } from '@mui/x-data-grid'; // NEW for Organization Management
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-
+// Icons
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
-import MoneyIcon from "@mui/icons-material/AttachMoney";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import DashboardIcon from "@mui/icons-material/Dashboard"; // NEW
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance"; // NEW
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn"; // NEW
-import CheckIcon from "@mui/icons-material/CheckCircleOutline"; // NEW
-import BlockIcon from "@mui/icons-material/Block"; // NEW
-import SearchIcon from "@mui/icons-material/Search"; // NEW
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import MessageIcon from "@mui/icons-material/Message";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import SearchIcon from "@mui/icons-material/Search";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import HistoryIcon from '@mui/icons-material/History';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
+// Third-party
+import {
+    BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
+    PieChart, Pie, Cell
+} from "recharts";
+import { motion } from "framer-motion";
 import axios from "axios";
 
-// --------------------------------------------------------------------
-// 🔑 AUTH HELPER (Placeholder)
-// --------------------------------------------------------------------
-const getToken = () => localStorage.getItem("token");
-
-// --------------------------------------------------------------------
-// 🎨 STATUS & COLOR HELPERS
-// --------------------------------------------------------------------
-const getStatusColor = (status) => {
-    switch (status) {
-        case "Active": return "success";
-        case "Inactive": return "error";
-        case "Approved": return "success";
-        case "Rejected": return "error";
-        case "Pending": return "warning";
-            case "Assigned": return "warning";
-        case "Accepted": return "info"; // Organization accepted the assignment
-        case "Completed": return "primary";
-        case "Picked": return "info";
-        default: return "default";
-    }
+/* ------------------------------------------------------------------
+   🎨 THEME CONSTANTS (Dark + Green)
+------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+   🎨 THEME DEFINITIONS
+------------------------------------------------------------------ */
+const DARK_THEME = {
+    mode: 'dark',
+    bg: "#020905",       // Deep Dark Green
+    card: "#0d1f16",     // Dark Jungle Green Cards
+    primary: "#10b981",  // Emerald Green
+    secondary: "#3b82f6",// Blue accent (keeping for contrast)
+    text: "#f9fafb",     // White text
+    textSec: "#9ca3af",  // Gray text
+    danger: "#ef4444",
+    warning: "#f59e0b",
+    success: "#10b981",
+    borderColor: "#1f2937"
 };
 
-// Helper: returns total item quantity for an item-donation
-const getItemCount = (d) => {
-    if (!d || !d.itemDetails) return 0;
-    return (d.itemDetails || []).reduce((sum, it) => sum + (it?.quantity || 0), 0);
+const LIGHT_THEME = {
+    mode: 'light',
+    bg: "#f0fdf4",       // Mint Cream
+    card: "#ffffff",     // White
+    primary: "#059669",  // Darker Emerald for Light mode
+    secondary: "#2563eb",
+    text: "#111827",     // Gray 900
+    textSec: "#6b7280",  // Gray 500
+    danger: "#dc2626",
+    warning: "#d97706",
+    success: "#059669",
+    borderColor: "#e5e7eb"
 };
 
-// Helper: returns a short string of item names and quantities
-const getItemNames = (d) => {
-    if (!d || !d.itemDetails) return '';
-    return (d.itemDetails || []).map(it => `${it.name || 'Item'} x${it.quantity || 0}`).join(', ');
+// Custom Scrollbar
+const scrollbarStyle = {
+    "&::-webkit-scrollbar": { width: "6px", height: "6px" },
+    "&::-webkit-scrollbar-thumb": { background: "#374151", borderRadius: "10px" },
+    "&::-webkit-scrollbar-track": { background: "transparent" },
 };
 
-// --------------------------------------------------------------------
-// 📦 COMPONENT: Summary Card (Unchanged from original code)
-// --------------------------------------------------------------------
-function SummaryCard({ icon, color, label, value }) {
-  return (
-    <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 3 }}>
-      <Card sx={{ p: 2, display: "flex", alignItems: "center", bgcolor: 'background.paper' }}>
-        <Avatar sx={{ bgcolor: color, mr: 2 }}>{icon}</Avatar>
-        <CardContent sx={{ flex: 1, p: '8px !important' }}>
-          <Typography variant="h6" fontWeight={700} sx={{ color: 'text.primary' }}>
-            {value}
-          </Typography>
-          <Typography color="text.secondary" sx={{ fontSize: 14 }}>{label}</Typography>
+const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+
+/* ------------------------------------------------------------------
+   🏆 PODIUM COMPONENT
+------------------------------------------------------------------ */
+const Podium = ({ winners, theme }) => {
+    const first = winners[0];
+    const second = winners[1];
+    const third = winners[2];
+
+    const PodiumStep = ({ rank, user, color, height, delay }) => {
+        if (!user) return <Box sx={{ width: 100 }} />;
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay, duration: 0.5 }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end" }}
+            >
+                <Box sx={{ textAlign: "center", mb: 2 }}>
+                    <Avatar sx={{ width: rank === 1 ? 80 : 60, height: rank === 1 ? 80 : 60, border: `3px solid ${color}`, mx: "auto", boxShadow: `0 0 15px ${color}80` }}>
+                        {user.name ? user.name.charAt(0) : "U"}
+                    </Avatar>
+                    <Typography variant="subtitle2" sx={{ color: theme.text, mt: 1, fontWeight: "bold" }}>{user.name}</Typography>
+                    <Typography variant="caption" sx={{ color: color, fontWeight: "bold" }}>{user.amount ? `₹${user.amount.toLocaleString()}` : "0 pts"}</Typography>
+                </Box>
+                <Box sx={{ width: { xs: 80, sm: 120 }, height: height, background: `linear-gradient(180deg, ${color}20 0%, ${color}10 100%)`, borderTop: `4px solid ${color}`, borderRadius: "8px 8px 0 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Typography variant="h3" sx={{ color: color, opacity: 0.3, fontWeight: 900 }}>{rank}</Typography>
+                </Box>
+            </motion.div>
+        );
+    };
+
+    return (
+        <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: { xs: 1, sm: 3 }, height: 320, mt: 4 }}>
+            <PodiumStep rank={2} user={second} color="#3b82f6" height={160} delay={0.2} />
+            <PodiumStep rank={1} user={first} color="#f59e0b" height={220} delay={0} />
+            <PodiumStep rank={3} user={third} color="#10b981" height={120} delay={0.4} />
+        </Box>
+    );
+};
+
+/* ------------------------------------------------------------------
+   📊 STAT CARD
+------------------------------------------------------------------ */
+const StatCard = ({ title, value, icon, color, theme }) => (
+    <Card sx={{
+        background: `linear-gradient(135deg, ${theme.card} 0%, ${color}15 100%)`,
+        borderRadius: 4,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+        border: `1px solid ${theme.borderColor}`,
+        height: "100%",
+        position: 'relative',
+        overflow: 'hidden'
+    }}>
+        <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: color, opacity: 0.05 }} />
+        <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 3 }}>
+            <Box sx={{ zIndex: 1 }}>
+                <Typography variant="body2" sx={{ color: theme.textSec, mb: 1, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
+                <Typography variant="h3" sx={{ color: color, fontWeight: 800 }}>{value}</Typography>
+            </Box>
+            <Box sx={{ p: 2, borderRadius: "16px", background: `linear-gradient(135deg, ${color}20 0%, ${color}40 100%)`, color: color, boxShadow: `0 8px 16px ${color}30` }}>{icon}</Box>
         </CardContent>
-      </Card>
-    </Grid>
-  );
-}
+    </Card>
+);
 
-// --------------------------------------------------------------------
-// 📊 COMPONENT: Analytics View (Your original component logic)
-// --------------------------------------------------------------------
-function DashboardAnalytics({ stats, moneyData, itemData, recent, COLORS, reloadData }) {
-    const [processing, setProcessing] = useState({});
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', id: null, message: '' });
+/* ------------------------------------------------------------------
+   📋 RECENT DONATIONS LIST COMPONENT
+------------------------------------------------------------------ */
+const RecentDonationsList = ({ donations, onUpdateStatus, theme }) => {
+    const [filter, setFilter] = useState("All");
+    const [search, setSearch] = useState("");
 
-    // UI: filter by category and search by user/place
-    const [filterType, setFilterType] = useState('All');
-    const [query, setQuery] = useState('');
-    const navigate = useNavigate();
-
-    const filteredRecent = (recent || []).filter(d => {
-        const typeMatch = filterType === 'All' ? true : d.type === filterType;
-        const q = (query || '').trim().toLowerCase();
-        if (!q) return typeMatch;
-        const donorName = (d.user?.name || d.name || '').toString().toLowerCase();
-        const place = (d.address || d.user?.city || '').toString().toLowerCase();
-        const amount = d.amount ? d.amount.toString() : '';
-        return typeMatch && (donorName.includes(q) || place.includes(q) || amount.includes(q) || (d.itemDetails || []).map(i => i.name?.toLowerCase()).join(' ').includes(q));
+    const filtered = (donations || []).filter(d => {
+        const matchesSearch = (d.donorName || "").toLowerCase().includes(search.toLowerCase()) ||
+            (d.type || "").toLowerCase().includes(search.toLowerCase());
+        const matchesFilter = filter === "All" || d.type === filter;
+        return matchesSearch && matchesFilter;
     });
 
-    if (!stats) return <Typography sx={{ p: 4 }}>Loading Analytics...</Typography>;
+    const formatDate = (str) => {
+        if (!str) return "";
+        return new Date(str).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
 
-    const approveDonation = async (id) => {
-        setProcessing(prev => ({ ...prev, [id]: 'approving' }));
+    const DonationDetailTooltip = ({ d }) => (
+        <Box sx={{ p: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, borderBottom: '1px solid #555' }}>Donation Details</Typography>
+            <Typography variant="body2"><strong>Type:</strong> {d.type}</Typography>
+            {d.type === 'Money' ? (
+                <Typography variant="body2"><strong>Amount:</strong> ₹{d.amount}</Typography>
+            ) : (
+                <Box>
+                    <Typography variant="body2"><strong>Items:</strong></Typography>
+                    <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+                        {(d.itemDetails || []).map((i, x) => <li key={x}><Typography variant="caption">{i.name} (x{i.quantity})</Typography></li>)}
+                    </ul>
+                </Box>
+            )}
+            {d.address && <Typography variant="body2"><strong>Address:</strong> {d.address}</Typography>}
+            {d.notes && <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>"{d.notes}"</Typography>}
+        </Box>
+    );
+
+    return (
+        <Card sx={{ bgcolor: theme.card, borderRadius: 3, border: `1px solid ${theme.borderColor}`, mb: 4 }}>
+            <CardContent>
+                {/* Header */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2 }}>
+                    <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold' }}>Recent Donations</Typography>
+
+                    <Box sx={{ display: 'flex', gap: 2, width: { xs: '100%', md: 'auto' } }}>
+                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <Select value={filter} onChange={(e) => setFilter(e.target.value)} sx={{ color: theme.text, '.MuiOutlinedInput-notchedOutline': { borderColor: theme.borderColor }, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.primary }, '.MuiSvgIcon-root': { color: theme.text } }}>
+                                <MenuItem value="All">All Category</MenuItem>
+                                <MenuItem value="Money">Money</MenuItem>
+                                <MenuItem value="Item">Item</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            placeholder="Search user..."
+                            size="small"
+                            variant="outlined"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: theme.textSec }} /></InputAdornment>) }}
+                            sx={{ bgcolor: theme.bg, borderRadius: 1, input: { color: theme.text }, fieldset: { border: `1px solid ${theme.borderColor}` } }}
+                        />
+                    </Box>
+                </Box>
+
+                {/* List */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {filtered.map((d) => (
+                        <Tooltip key={d._id} title={<DonationDetailTooltip d={d} />} placement="left" arrow componentsProps={{ tooltip: { sx: { bgcolor: theme.card, border: `1px solid ${theme.borderColor}`, p: 1, color: theme.text } } }}>
+                            <Paper sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: theme.bg, border: `1px solid ${theme.borderColor}`, borderRadius: 2, transition: '0.2s', '&:hover': { borderColor: theme.primary, bgcolor: theme.mode === 'dark' ? '#111827' : '#f9fafb' } }}>
+                                {/* Left: Icon + Text */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Avatar sx={{ bgcolor: d.type === 'Money' ? '#10b98120' : '#3b82f620', color: d.type === 'Money' ? '#10b981' : '#3b82f6', borderRadius: 2 }}>
+                                        {d.type === 'Money' ? '₹' : <AssignmentIcon />}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="subtitle1" sx={{ color: theme.text, fontWeight: 'bold' }}>
+                                            {d.donorName} <span style={{ color: theme.textSec, fontSize: '0.8em', fontWeight: 'normal' }}>• {d.address ? d.address.split(',')[0] : 'Online'}</span>
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                            <Chip label={d.type === 'Money' ? `₹${d.amount}` : `${(d.itemDetails || []).length} items`} size="small" sx={{ height: 20, fontSize: '0.7rem', bgcolor: d.type === 'Money' ? '#10b98120' : '#3b82f620', color: d.type === 'Money' ? '#10b981' : '#3b82f6' }} />
+                                            <Typography variant="caption" sx={{ color: theme.textSec }}>{formatDate(d.createdAt)}</Typography>
+                                        </Box>
+                                    </Box>
+                                </Box>
+
+                                {/* Right: Status + Actions */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Chip
+                                        label={d.status || 'Pending'}
+                                        sx={{
+                                            bgcolor: d.status === 'Approved' || d.status === 'Completed' ? '#10b98120' : d.status === 'Rejected' ? '#ef444420' : '#f59e0b20',
+                                            color: d.status === 'Approved' || d.status === 'Completed' ? '#10b981' : d.status === 'Rejected' ? '#ef4444' : '#f59e0b',
+                                            fontWeight: 'bold'
+                                        }}
+                                    />
+                                    {d.status === 'Pending' && onUpdateStatus && (
+                                        <Box>
+                                            <IconButton size="small" sx={{ color: theme.success, border: `1px solid ${theme.success}40`, mr: 1 }} onClick={(e) => { e.stopPropagation(); onUpdateStatus(d._id, 'Approved'); }}>
+                                                <CheckCircleIcon fontSize="small" />
+                                            </IconButton>
+                                            <IconButton size="small" sx={{ color: theme.danger, border: `1px solid ${theme.danger}40` }} onClick={(e) => { e.stopPropagation(); onUpdateStatus(d._id, 'Rejected'); }}>
+                                                <CancelIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+                                    {(d.status === 'Approved' || d.status === 'Completed') && <CheckCircleIcon sx={{ color: theme.success, opacity: 0.5 }} />}
+                                    {(d.status === 'Rejected') && <CancelIcon sx={{ color: theme.danger, opacity: 0.5 }} />}
+                                </Box>
+                            </Paper>
+                        </Tooltip>
+                    ))}
+                    {filtered.length === 0 && <Typography sx={{ color: theme.textSec, textAlign: 'center', py: 4 }}>No donations found.</Typography>}
+                </Box>
+            </CardContent>
+        </Card>
+    );
+};
+
+/* ------------------------------------------------------------------
+   MAIN COMPONENT
+------------------------------------------------------------------ */
+export default function Admindash() {
+    const navigate = useNavigate();
+    const baseurl = import.meta.env.VITE_API_BASE_URL || '';
+    const [activeTab, setActiveTab] = useState("Dashboard");
+    const [stats, setStats] = useState({ users: 0, donations: 0, totalAmount: 0, topDonors: [] });
+    const [itemData, setItemData] = useState([]);
+    const [recent, setRecent] = useState([]);
+    const [mode, setMode] = useState('dark');
+
+    const theme = mode === 'dark' ? DARK_THEME : LIGHT_THEME;
+
+    const MENU_ITEMS = [
+        { id: "Dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+        { id: "Recent", label: "Recent Donations", icon: <HistoryIcon /> },
+        { id: "Students", label: "Users List", icon: <PeopleIcon /> },
+        { id: "Faculty", label: "Organizations", icon: <StorefrontIcon /> },
+        { id: "Tasks", label: "Assignments", icon: <AssignmentIcon /> },
+        { id: "Submissions", label: "Requests", icon: <MessageIcon /> },
+    ];
+
+    /* FETCH DATA */
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const headers = { Authorization: `Bearer ${getToken()}` };
+                const [statsRes, itemRes] = await Promise.all([
+                    axios.get(`${baseurl}/api/donations/admin/stats`, { headers }),
+                    axios.get(`${baseurl}/api/donations/admin/analytics/items`, { headers })
+                ]);
+
+                setStats({
+                    users: statsRes.data.users || 0,
+                    donations: statsRes.data.donations || 0,
+                    totalAmount: statsRes.data.totalAmount || 0,
+                    topDonors: statsRes.data.topDonors || []
+                });
+                setItemData(itemRes.data.map(i => ({ name: i._id, value: i.total })));
+
+                // Load recent donations too
+                const recentRes = await axios.get(`${baseurl}/api/donations/admin/recent-donations`, { headers });
+                setRecent(recentRes.data || []);
+            } catch (err) {
+                if (err.response?.status === 401) navigate('/login');
+                console.error(err);
+            }
+        };
+        loadData();
+    }, [baseurl, navigate]);
+
+    /* DASHBOARD RENDER */
+    const renderDashboard = () => (
+        <Box sx={{ animate: { opacity: 1 } }}>
+            <Typography variant="h5" sx={{ color: theme.text, fontWeight: "bold", mb: 3 }}>Dashboard Overview</Typography>
+
+            {/* 1. Stats */}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+                <Grid item xs={12} md={4}><StatCard title="Total Users" value={stats.users} icon={<PeopleIcon sx={{ fontSize: 32 }} />} color="#3b82f6" theme={theme} /></Grid>
+                <Grid item xs={12} md={4}><StatCard title="Total Donations (₹)" value={stats.totalAmount.toLocaleString()} icon={<EmojiEventsIcon sx={{ fontSize: 32 }} />} color="#10b981" theme={theme} /></Grid>
+                <Grid item xs={12} md={4}><StatCard title="Total Activities" value={stats.donations} icon={<AssignmentIcon sx={{ fontSize: 32 }} />} color="#ec4899" theme={theme} /></Grid>
+            </Grid>
+
+            {/* 2. Main Content Row (Podium + Charts) */}
+            <Grid container spacing={3} sx={{ mb: 4, alignItems: 'stretch' }}>
+                {/* Top Donors */}
+                <Grid item xs={12} md={4}>
+                    <Card sx={{
+                        background: `linear-gradient(135deg, ${theme.card} 0%, ${theme.primary}05 100%)`,
+                        borderRadius: 4,
+                        border: `1px solid ${theme.borderColor}`,
+                        height: "100%",
+                        display: 'flex', flexDirection: 'column'
+                    }}>
+                        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold' }}>🏆 Top Donors</Typography>
+                                <Chip label="All Time" size="small" sx={{ bgcolor: theme.mode === 'dark' ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: theme.text }} />
+                            </Box>
+                            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Podium winners={stats.topDonors} theme={theme} />
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* Pie Chart */}
+                <Grid item xs={12} md={4}>
+                    <Card sx={{
+                        background: `linear-gradient(135deg, ${theme.card} 0%, ${theme.secondary}05 100%)`,
+                        borderRadius: 4,
+                        border: `1px solid ${theme.borderColor}`,
+                        height: "100%",
+                        display: 'flex', flexDirection: 'column'
+                    }}>
+                        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="h6" sx={{ color: theme.text, mb: 2, fontWeight: 'bold' }}>Donation Categories</Typography>
+                            <Box sx={{ flex: 1, minHeight: 0 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={itemData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
+                                            {itemData.map((_, index) => (<Cell key={index} fill={[theme.primary, theme.secondary, "#f59e0b", "#ec4899"][index % 4]} />))}
+                                        </Pie>
+                                        <RechartsTooltip contentStyle={{ backgroundColor: theme.card, border: "1px solid " + theme.borderColor, borderRadius: 12, color: theme.text, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }} itemStyle={{ color: theme.text }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+                                {itemData.slice(0, 4).map((d, i) => (
+                                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: [theme.primary, theme.secondary, "#f59e0b", "#ec4899"][i % 4] }} />
+                                        <Typography variant="caption" sx={{ color: theme.textSec, fontWeight: 500 }}>{d.name}</Typography>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* Bar Chart */}
+                <Grid item xs={12} md={4}>
+                    <Card sx={{
+                        background: `linear-gradient(135deg, ${theme.card} 0%, #8b5cf605 100%)`,
+                        borderRadius: 4,
+                        border: `1px solid ${theme.borderColor}`,
+                        height: "100%",
+                        display: 'flex', flexDirection: 'column'
+                    }}>
+                        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="h6" sx={{ color: theme.text, mb: 2, fontWeight: 'bold' }}>Activity Volume</Typography>
+                            <Box sx={{ flex: 1, minHeight: 0 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={[{ n: 'Mon', v: 12 }, { n: 'Tue', v: 19 }, { n: 'Wed', v: 3 }, { n: 'Thu', v: 5 }, { n: 'Fri', v: 2 }]}>
+                                        <XAxis dataKey="n" stroke={theme.textSec} tick={{ fill: theme.textSec, fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
+                                        <RechartsTooltip
+                                            cursor={{ fill: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', radius: 4 }}
+                                            contentStyle={{ backgroundColor: theme.card, border: "1px solid " + theme.borderColor, borderRadius: 12, color: theme.text, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
+                                        />
+                                        <Bar dataKey="v" fill="#8b5cf6" radius={[6, 6, 6, 6]} barSize={24}>
+                                            {/* Optional: Add gradient to bars */}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* 4. Recent Donations */}
+            <RecentDonationsList
+                theme={theme}
+                donations={recent}
+                onUpdateStatus={async (id, status) => {
+                    // Optimistic update for UI responsiveness
+                    setRecent(prev => prev.map(d => d._id === id ? { ...d, status } : d));
+                    try {
+                        const endpoint = status === 'Approved' ? 'approve' : 'reject';
+                        await axios.put(`${baseurl}/api/donations/admin/${endpoint}/${id}`);
+                        // Background refresh
+                        const headers = { Authorization: `Bearer ${getToken()}` };
+                        const recentRes = await axios.get(`${baseurl}/api/donations/admin/recent-donations`, { headers });
+                        setRecent(recentRes.data || []);
+                    } catch (e) { console.error(e); }
+                }}
+            />
+        </Box>
+    );
+
+    return (
+        <Box sx={{ display: "flex", bgcolor: theme.bg, minHeight: "100vh", color: theme.text }}>
+            <Box sx={{ width: 260, borderRight: `1px solid ${theme.borderColor}`, display: { xs: "none", md: "flex" }, flexDirection: "column", p: 2 }}>
+                <Typography variant="h5" sx={{ color: theme.primary, fontWeight: 900, mb: 4, px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>Changing<span style={{ color: theme.text }}>Lives</span></Typography>
+                <List sx={{ flex: 1 }}>
+                    {MENU_ITEMS.map((item) => (
+                        <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
+                            <ListItemButton onClick={() => setActiveTab(item.id)} sx={{ borderRadius: 2, bgcolor: activeTab === item.id ? theme.primary : "transparent", color: activeTab === item.id ? (theme.mode === 'dark' ? "#fff" : theme.bg) : theme.textSec, "&:hover": { bgcolor: activeTab === item.id ? theme.primary : theme.mode === 'dark' ? "#1f2937" : "#e5e7eb", color: activeTab === item.id ? "white" : theme.text } }}>
+                                <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>{item.icon}</ListItemIcon>
+                                <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 600 }} />
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
+                </List>
+                <Box sx={{ p: 2, bgcolor: theme.mode === 'dark' ? "#1f2937" : "#e5e7eb", borderRadius: 2, mt: "auto" }}>
+                    <Typography variant="subtitle2" sx={{ color: theme.text, fontWeight: "bold" }}>Admin User</Typography>
+                    <Typography variant="caption" sx={{ color: theme.textSec }}>admin@changinglives.com</Typography>
+                    <Button startIcon={<LogoutIcon />} fullWidth size="small" sx={{ mt: 1, color: theme.danger, justifyContent: "flex-start", px: 0 }} onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate("/login"); }}>Logout</Button>
+                </Box>
+            </Box>
+
+            <Box sx={{ flex: 1, height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <Box sx={{ height: 64, borderBottom: `1px solid ${theme.borderColor}`, display: "flex", alignItems: "center", justifyContent: "space-between", px: 4 }}>
+                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>{MENU_ITEMS.find(i => i.id === activeTab)?.label || 'Overview'}</Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <TextField placeholder="Search..." size="small" variant="outlined" InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: theme.textSec }} /></InputAdornment>) }} sx={{ bgcolor: theme.mode === 'dark' ? "#1f2937" : "#f3f4f6", borderRadius: 2, "& fieldset": { border: "none" }, input: { color: theme.text } }} />
+                        <IconButton onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} sx={{ color: theme.text }}>
+                            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+                        </IconButton>
+                        <IconButton sx={{ color: theme.textSec }}><NotificationsIcon /></IconButton>
+                    </Box>
+                </Box>
+                <Box sx={{ flex: 1, overflowY: "auto", p: 4, ...scrollbarStyle }}>
+                    {activeTab === "Dashboard" && renderDashboard()}
+                    {activeTab === "Recent" && <RecentDonationsList donations={recent} theme={theme} />}
+                    {activeTab === "Students" && <AdminUsersPage darkTheme={theme} baseurl={baseurl} />}
+                    {activeTab === "Faculty" && <AdminOrganizationPage darkTheme={theme} baseurl={baseurl} />}
+                    {activeTab === "Tasks" && <AdminItemAssignmentPage darkTheme={theme} baseurl={baseurl} />}
+                    {activeTab === "Submissions" && <AdminRequestsPage darkTheme={theme} baseurl={baseurl} />}
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
+/* =================================================================================
+   SUB-COMPONENTS (Fully Functional)
+================================================================================= */
+
+/* --- USERS LIST --- */
+function AdminUsersPage({ baseurl, darkTheme }) {
+    const [users, setUsers] = useState([]);
+    useEffect(() => { axios.get(`${baseurl}/api/users`, { headers: { Authorization: `Bearer ${getToken()}` } }).then(r => setUsers(r.data)).catch(console.error); }, []);
+
+    return (
+        <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
+            <Table>
+                <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Name</TableCell><TableCell>Email</TableCell><TableCell>Role</TableCell><TableCell>Joined</TableCell></TableRow></TableHead>
+                <TableBody>
+                    {users.map((u) => (
+                        <TableRow key={u._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
+                            <TableCell>{u.fname} {u.lname}</TableCell><TableCell>{u.ename}</TableCell>
+                            <TableCell><Chip label={u.role} color={u.role === 'admin' ? 'primary' : 'default'} size="small" /></TableCell>
+                            <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    )
+}
+
+/* --- ORGANIZATION MANAGEMENT --- */
+function AdminOrganizationPage({ baseurl, darkTheme }) {
+    const [orgs, setOrgs] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({ name: '', contactEmail: '', location: '', password: '' });
+
+    const fetchOrgs = () => { axios.get(`${baseurl}/api/admin/organizations`, { headers: { Authorization: `Bearer ${getToken()}` } }).then(r => setOrgs(r.data)).catch(console.error); }
+    useEffect(() => { fetchOrgs(); }, []);
+
+    const handleSubmit = async () => {
         try {
-            const token = getToken();
-            await axios.put(`${baseurl}/api/donations/admin/approve/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-            if (reloadData) reloadData();
-            // notify other components (assignments) to refresh
-            window.dispatchEvent(new Event('donationUpdated'));
-            setSnackbar({ open: true, message: 'Donation approved', severity: 'success' });
-        } catch (err) {
-            console.error('Approve donation error', err);
-            setSnackbar({ open: true, message: 'Failed to approve donation', severity: 'error' });
-        } finally {
-            setProcessing(prev => ({ ...prev, [id]: null }));
-        }
+            await axios.post(`${baseurl}/api/admin/organizations`, form, { headers: { Authorization: `Bearer ${getToken()}` } });
+            setOpen(false); fetchOrgs(); setForm({ name: '', contactEmail: '', location: '', password: '' });
+        } catch (e) { alert("Failed to add Org"); }
     };
 
-    const rejectDonation = async (id) => {
-        setProcessing(prev => ({ ...prev, [id]: 'rejecting' }));
+    const toggleStatus = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
         try {
-            const token = getToken();
-            await axios.put(`${baseurl}/api/donations/admin/reject/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-            if (reloadData) reloadData();
-            window.dispatchEvent(new Event('donationUpdated'));
-            setSnackbar({ open: true, message: 'Donation rejected', severity: 'info' });
-        } catch (err) {
-            console.error('Reject donation error', err);
-            setSnackbar({ open: true, message: 'Failed to reject donation', severity: 'error' });
-        } finally {
-            setProcessing(prev => ({ ...prev, [id]: null }));
-        }
+            await axios.patch(`${baseurl}/api/admin/organizations/status/${id}`, { status: newStatus }, { headers: { Authorization: `Bearer ${getToken()}` } });
+            fetchOrgs();
+        } catch (e) { console.error(e); }
+    }
+
+    return (
+        <Box>
+            <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: darkTheme.primary, mb: 3 }} onClick={() => setOpen(true)}>Add Organization</Button>
+            <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
+                <Table>
+                    <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Name</TableCell><TableCell>Email</TableCell><TableCell>Location</TableCell><TableCell>Status</TableCell><TableCell>Action</TableCell></TableRow></TableHead>
+                    <TableBody>
+                        {orgs.map((o) => (
+                            <TableRow key={o._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
+                                <TableCell>{o.name}</TableCell><TableCell>{o.contactEmail}</TableCell><TableCell>{o.location}</TableCell>
+                                <TableCell><Chip label={o.status || 'Unknown'} color={o.status === 'Active' ? 'success' : 'default'} size="small" /></TableCell>
+                                <TableCell>
+                                    <IconButton size="small" sx={{ color: o.status === 'Active' ? darkTheme.success : darkTheme.textSec }} onClick={() => toggleStatus(o._id, o.status)}>
+                                        {o.status === 'Active' ? <ToggleOnIcon fontSize="large" /> : <ToggleOffIcon fontSize="large" />}
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Dialog open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { bgcolor: darkTheme.card, color: 'white' } }}>
+                <DialogTitle>Add Organization</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" label="Name" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <TextField margin="dense" label="Email" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+                    <TextField margin="dense" label="Location" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                    <TextField margin="dense" label="Password" type="password" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpen(false)} sx={{ color: 'gray' }}>Cancel</Button>
+                    <Button onClick={handleSubmit} variant="contained" sx={{ bgcolor: darkTheme.primary }}>Add</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    )
+}
+
+/* --- ITEM ASSIGNMENT --- */
+function AdminItemAssignmentPage({ baseurl, darkTheme }) {
+    const [donations, setDonations] = useState([]);
+    const [organizations, setOrganizations] = useState([]);
+    const [selectedOrg, setSelectedOrg] = useState({});
+
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                const [dRes, oRes] = await Promise.all([
+                    axios.get(`${baseurl}/api/donations/admin/unassigned-items`, { headers: { Authorization: `Bearer ${getToken()}` } }),
+                    axios.get(`${baseurl}/api/admin/organizations?status=Active`, { headers: { Authorization: `Bearer ${getToken()}` } })
+                ]);
+                setDonations(dRes.data);
+                setOrganizations(oRes.data);
+            } catch (e) { console.error(e); }
+        };
+        fetch();
+    }, [baseurl]);
+
+    const handleAssign = async (donationId) => {
+        if (!selectedOrg[donationId]) return alert("Select Org");
+        try {
+            await axios.patch(`${baseurl}/api/donations/admin/assign/${donationId}`, { organizationId: selectedOrg[donationId] }, { headers: { Authorization: `Bearer ${getToken()}` } });
+            setDonations(p => p.filter(d => d._id !== donationId));
+            alert("Assigned Successfully");
+        } catch (e) { alert("Assignment Failed"); }
+    }
+
+    return (
+        <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
+            <Table>
+                <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Items</TableCell><TableCell>Address</TableCell><TableCell>Assign To</TableCell><TableCell>Action</TableCell></TableRow></TableHead>
+                <TableBody>
+                    {donations.map((d) => (
+                        <TableRow key={d._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
+                            <TableCell>{(d.itemDetails || []).map(i => `${i.name} x${i.quantity}`).join(', ')}</TableCell>
+                            <TableCell>{d.address}</TableCell>
+                            <TableCell>
+                                <select style={{ background: "#374151", color: "white", padding: "8px", borderRadius: 4, border: '1px solid #4b5563', width: '100%' }} onChange={(e) => setSelectedOrg(p => ({ ...p, [d._id]: e.target.value }))}>
+                                    <option value="">Select Organization</option>
+                                    {organizations.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
+                                </select>
+                            </TableCell>
+                            <TableCell>
+                                <Button size="small" variant="contained" sx={{ bgcolor: darkTheme.primary }} onClick={() => handleAssign(d._id)}>Assign</Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                    {donations.length === 0 && <TableRow><TableCell colSpan={4} align="center" sx={{ color: darkTheme.textSec, py: 4 }}>No unassigned items found.</TableCell></TableRow>}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    )
+}
+
+/* --- REQUEST MANAGEMENT --- */
+function AdminRequestsPage({ baseurl, darkTheme }) {
+    const [requests, setRequests] = useState([]);
+    const [openAssign, setOpenAssign] = useState(false);
+    const [selectedReq, setSelectedReq] = useState(null);
+    const [availableDonations, setAvailableDonations] = useState([]);
+
+    const fetchRequests = () => {
+        axios.get(`${baseurl}/api/admin/requests`, { headers: { Authorization: `Bearer ${getToken()}` } }).then(r => setRequests(r.data)).catch(console.error);
+    };
+    useEffect(() => { fetchRequests(); }, []); // eslint-disable-line
+
+    const updateStatus = async (id, status) => {
+        try {
+            await axios.patch(`${baseurl}/api/admin/requests/status/${id}`, { status }, { headers: { Authorization: `Bearer ${getToken()}` } });
+            fetchRequests();
+        } catch (e) { console.error(e); }
     };
 
-    const openConfirm = (action, id, message) => {
-        setConfirmDialog({ open: true, action, id, message });
+    const handleOpenAssign = async (req) => {
+        setSelectedReq(req);
+        try {
+            const res = await axios.get(`${baseurl}/api/donations/admin/unassigned-items`, { headers: { Authorization: `Bearer ${getToken()}` } });
+            setAvailableDonations(res.data);
+            setOpenAssign(true);
+        } catch (e) { alert("Failed to fetch donations"); }
     };
 
-    const handleConfirm = async () => {
-        const { action, id } = confirmDialog;
-        setConfirmDialog(prev => ({ ...prev, open: false }));
-        if (action === 'approve') {
-            await approveDonation(id);
-        } else if (action === 'reject') {
-            await rejectDonation(id);
+    const handleAssignConfirm = async (donationId) => {
+        try {
+            await axios.patch(`${baseurl}/api/admin/requests/assign-donation/${selectedReq._id}`, { donationId }, { headers: { Authorization: `Bearer ${getToken()}` } });
+            setOpenAssign(false);
+            fetchRequests();
+        } catch (e) {
+            console.error(e);
+            alert("Assignment Failed: " + (e.response?.data?.error || e.message));
         }
     };
 
     return (
         <Box>
-            {/* Summary Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <SummaryCard icon={<PeopleIcon />} color="#1976d2" label="Users" value={stats.users} />
-                <SummaryCard icon={<FavoriteIcon />} color="#e53935" label="Donations" value={stats.donations} />
-                <SummaryCard icon={<TrendingUpIcon />} color="#fbc02d" label="Total Amount (₹)" value={stats.totalAmount.toLocaleString()} />
-                <SummaryCard
-                    icon={<MoneyIcon />}
-                    color="#43a047"
-                    label="Top Donor"
-                    value={
-                        stats.topDonor
-                            ? `User ${stats.topDonor._id} (₹${stats.topDonor.amount.toLocaleString()})`
-                            : "No donors"
-                    }
-                />
-            </Grid>
-
-            {/* CHARTS SECTION */}
-            <Grid container spacing={3}>
-                <Grid item xs={{ span: 12 }} md={{ span: 4 }}>
-                    {/* <Card sx={{ height: 380, p: 2 }}>
-                        <Typography variant="h6" fontWeight={600}>Monthly Money Donations</Typography>
-                        <ResponsiveContainer width="100%" height="90%">
-                            <BarChart data={moneyData}>
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="total" fill="#1976d2" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </Card> */}
-                </Grid>
-                <Grid item xs={{ span: 12 }} md={{ span: 8 }}>
-                    <Card sx={{ height: 480, p: 2 }}>
-                        <Typography variant="h6" fontWeight={600}>
-            Item Donation Categories
-        </Typography>
-        <ResponsiveContainer width="100%" height={420}>
-            <PieChart>
-                <Pie
-                    data={itemData}
-                    cx="50%"
-                    cy="48%"
-                    labelLine={false}
-                    outerRadius="85%"
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                >
-                    {itemData.map((_, index) => (
-                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                </Pie>
-                <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ marginTop: 8 }} />
-            </PieChart>
-        </ResponsiveContainer>
-    </Card>
-</Grid>
-            </Grid>
-
-            {/* Recent Donations List - Modern Detailed View */}
-            <Paper sx={{ p: 3, mt: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Typography variant="h6">Recent Donations</Typography>
-
-                    <FormControl size="small" sx={{ minWidth: 140, ml: 'auto' }}>
-                        <InputLabel>Category</InputLabel>
-                        <Select value={filterType} label="Category" onChange={(e) => setFilterType(e.target.value)}>
-                            <MenuItem value="All">All</MenuItem>
-                            <MenuItem value="Money">Money</MenuItem>
-                            <MenuItem value="Item">Item</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                    <TextField
-                        size="small"
-                        placeholder="Search user/place or amount"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
-                        sx={{ width: 300 }}
-                    />
-                </Box>
-
-                <List disablePadding>
-                    {filteredRecent.slice(0, 20).map((d) => (
-                        <ListItem key={d._id} divider sx={{ py: 1.5, alignItems: 'flex-start' }}>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: d.type === 'Money' ? '#43a047' : '#1976d2', width: 52, height: 52, fontWeight: 700 }}>
-                                    {d.type === 'Money' ? '₹' : '📦'}
-                                </Avatar>
-                            </ListItemAvatar>
-
-                            <ListItemText
-                                sx={{ mx: 2 }}
-                                primary={
-                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <Typography fontWeight={700}>{d.user?.name || d.name || 'Anonymous'}</Typography>
-                                        <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>• {d.address ? d.address.split(',')[0] : (d.user?.city || '—')}</Typography>
-                                    </Box>
-                                }
-                                secondary={
-                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.6, flexWrap: 'wrap' }}>
-                                        {d.type === 'Money' ? (
-                                            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>₹{(d.amount || 0).toLocaleString()}</Typography>
-                                        ) : (
-                                            <MuiTooltip title={getItemNames(d) || 'No items listed'}>
-                                                <Chip label={`${getItemCount(d)} item${getItemCount(d) === 1 ? '' : 's'}`} size="small" color="primary" />
-                                            </MuiTooltip>
-                                        )}
-
-                                        <Chip label={d.type} size="small" variant="outlined" />
-
-                                        <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{d?.createdAt ? new Date(d.createdAt).toLocaleString() : ''}</Typography>
-
-                                        <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{d.user?.email ? `• ${d.user.email}` : ''}</Typography>
-
-                                    </Box>
-                                }
-                                secondaryTypographyProps={{ component: 'div' }}
-                            />
-
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, ml: 1 }}>
-                                <Chip label={d.status} color={getStatusColor(d.status)} size="small" />
-
-                                <Box>
-                                    {d.status !== 'Approved' && (
-                                        <MuiTooltip title={d.status === 'Rejected' ? 'Approve (reconsider)' : 'Approve'}>
-                                            <IconButton
-                                                size="small"
-                                                color="success"
-                                                onClick={() => openConfirm('approve', d._id, 'Are you sure you want to approve this donation?')}
-                                                disabled={!!processing[d._id]}
-                                                sx={{ mr: 0.5 }}
-                                            >
-                                                {processing[d._id] === 'approving' ? <CircularProgress size={18} /> : <CheckIcon fontSize="small" />}
-                                            </IconButton>
-                                        </MuiTooltip>
+            <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
+                <Table>
+                    <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Org</TableCell><TableCell>Items</TableCell><TableCell>Status</TableCell><TableCell>Action</TableCell></TableRow></TableHead>
+                    <TableBody>
+                        {requests.map((r) => (
+                            <TableRow key={r._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
+                                <TableCell>
+                                    <Typography variant="body2" fontWeight="bold">{r.organizationName || 'Unavailable'}</Typography>
+                                    <Typography variant="caption" sx={{ color: darkTheme.textSec }}>{new Date(r.createdAt).toLocaleDateString()}</Typography>
+                                </TableCell>
+                                <TableCell>
+                                    {(r.items || []).map(i => `${i.name}`).join(', ')}
+                                    {r.assignedDonationId && <Chip label="Assigned" size="small" sx={{ ml: 1, bgcolor: darkTheme.primary, color: 'white' }} />}
+                                </TableCell>
+                                <TableCell><Chip label={r.status} color={r.status === 'Approved' ? 'success' : r.status === 'Rejected' ? 'error' : r.status === 'Assigned' ? 'primary' : 'warning'} size="small" /></TableCell>
+                                <TableCell>
+                                    {r.status === 'Pending' && (
+                                        <>
+                                            <Tooltip title="Approve"><IconButton size="small" sx={{ color: darkTheme.success }} onClick={() => updateStatus(r._id, 'Approved')}><CheckCircleIcon /></IconButton></Tooltip>
+                                            <Tooltip title="Reject"><IconButton size="small" sx={{ color: darkTheme.danger }} onClick={() => updateStatus(r._id, 'Rejected')}><CancelIcon /></IconButton></Tooltip>
+                                        </>
                                     )}
-
-                                    {d.status !== 'Rejected' && (
-                                        <MuiTooltip title={d.status === 'Approved' ? 'Reject (mark as rejected)' : 'Reject'}>
-                                            <IconButton
-                                                size="small"
-                                                color="error"
-                                                onClick={() => openConfirm('reject', d._id, 'Are you sure you want to reject this donation?')}
-                                                disabled={!!processing[d._id]}
-                                            >
-                                                {processing[d._id] === 'rejecting' ? <CircularProgress size={18} /> : <BlockIcon fontSize="small" />}
-                                            </IconButton>
-                                        </MuiTooltip>
+                                    {r.status === 'Approved' && (
+                                        <Tooltip title="Assign Item"><Button size="small" startIcon={<AssignmentIcon />} sx={{ color: darkTheme.primary }} onClick={() => handleOpenAssign(r)}>Assign</Button></Tooltip>
                                     )}
-                                </Box>
-                            </Box>
-                        </ListItem>
-                    ))}
-
-                    {filteredRecent.length === 0 && (
-                        <Typography sx={{ p: 2, color: 'text.secondary' }}>No donations found.</Typography>
-                    )}
-
-                </List>
-
-
-
-                <Snackbar
-                    open={snackbar.open}
-                    autoHideDuration={3500}
-                    onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                >
-                    <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
-                        {snackbar.message}
-                    </Alert>
-                </Snackbar>
-
-                <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
-                    <DialogTitle>Confirm action</DialogTitle>
-                    <DialogContent>
-                        <Typography>{confirmDialog.message}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>Cancel</Button>
-                        <Button onClick={handleConfirm} color="primary">Confirm</Button>
-                    </DialogActions>
-                </Dialog>
-            </Paper>
-        </Box>
-    );
-}
-
-// --------------------------------------------------------------------
-// 🏛️ COMPONENT: Organization Management View
-// --------------------------------------------------------------------
-function AdminOrganizationPage() {
-    const [organizations, setOrganizations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [newOrg, setNewOrg] = useState({ name: '', contactEmail: '', location: '', password: '' });
-    const [submittingOrg, setSubmittingOrg] = useState(false);
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const [statusDialog, setStatusDialog] = useState({ open: false, id: null, target: '', name: '' });
-
-    useEffect(() => {
-        fetchOrganizations();
-    }, []);
-
-    const fetchOrganizations = async () => {
-        setLoading(true);
-        try {
-            const token = getToken();
-            const res = await axios.get(`${baseurl}/api/admin/organizations`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const cleaned = res.data.map(org => ({ ...org, id: org._id }));
-            setOrganizations(cleaned);
-        } catch (err) {
-            console.error("❌ Error fetching organizations:", err);
-            setOrganizations([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const updateStatus = async (id, status) => {
-        const token = getToken();
-        try {
-            await axios.patch(`${baseurl}/api/admin/organizations/status/${id}`, { status }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setOrganizations(prev => prev.map(org => 
-                org.id === id ? { ...org, status } : org
-            ));
-            setSnackbar({ open: true, message: `Organization ${status.toLowerCase()}`, severity: status === 'Active' ? 'success' : 'warning' });
-        } catch (error) {
-            console.error(`❌ Error updating status to ${status}:`, error);
-            setSnackbar({ open: true, message: 'Failed to update organization status', severity: 'error' });
-        }
-    };
-
-    const createOrganization = async () => {
-        if (!newOrg.name || newOrg.name.trim() === '') {
-            setSnackbar({ open: true, message: 'Organization name is required', severity: 'error' });
-            return;
-        }
-        if (!newOrg.password || newOrg.password.trim() === '') {
-            setSnackbar({ open: true, message: 'Organization password is required', severity: 'error' });
-            return;
-        }
-        setSubmittingOrg(true);
-        try {
-            const token = getToken();
-            const res = await axios.post(`${baseurl}/api/admin/organizations`, newOrg, { headers: { Authorization: `Bearer ${token}` } });
-            const org = res.data.org;
-            setOrganizations(prev => [{ ...org, id: org._id }, ...prev]);
-            setNewOrg({ name: '', contactEmail: '', location: '' });
-            setSnackbar({ open: true, message: 'Organization created successfully', severity: 'success' });
-        } catch (err) {
-            console.error('Create org error', err);
-            setSnackbar({ open: true, message: 'Failed to create organization', severity: 'error' });
-        } finally {
-            setSubmittingOrg(false);
-        }
-    };
-
-    const columns = [
-        { field: 'name', headerName: 'Organization Name', width: 200 },
-        { field: 'contactEmail', headerName: 'Contact Email', width: 220 },
-        { field: 'location', headerName: 'Location', width: 250 },
-        { 
-            field: 'status', 
-            headerName: 'Status', 
-            width: 120,
-            renderCell: (params) => { try { return <Chip label={params.value} color={getStatusColor(params.value)} size="small" /> } catch (err) { console.error('Org status cell error', err, params); return <Chip label="err" size="small" /> } },
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 150,
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => { try { return (
-                    <Box>
-                        <MuiTooltip title={params.row.status === 'Active' ? 'Set Inactive' : 'Set Active'}>
-                            <IconButton
-                                color={params.row.status === 'Active' ? 'error' : 'success'}
-                                size="small"
-                                onClick={() => {
-                                        const target = params.row.status === 'Active' ? 'Inactive' : 'Active';
-                                        setStatusDialog({ open: true, id: params.row.id, target, name: params.row.name });
-                                    }}
-                            >
-                                {params.row.status === 'Active' ? <BlockIcon /> : <CheckIcon />}
-                            </IconButton>
-                        </MuiTooltip>
-                        <MuiTooltip title="View Details">
-                            <IconButton color="primary" size="small" onClick={() => window.location.href = `/admin/orgs/${params.row.id}`}>
-                                <SearchIcon />
-                            </IconButton>
-                        </MuiTooltip>
-                    </Box>
-                ); } catch (err) { console.error('Org actions cell error', err, params); return <Typography color="error">Err</Typography>; } },
-        },
-    ];
-
-    return (
-        <Paper sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom fontWeight={700}>
-                🏛️ Organization Management
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
-                Manage organizations and set them Active/Inactive for assignments.
-            </Typography>
-
-            <Box sx={{ mb: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
-                        <TextField
-                            label="Organization Name"
-                            fullWidth
-                            size="small"
-                            value={newOrg.name}
-                            onChange={(e) => setNewOrg(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                    </Grid>
-                    <Grid item xs={{ span: 12 }} sm={{ span: 4 }}>
-                        <TextField
-                            label="Contact Email"
-                            fullWidth
-                            size="small"
-                            value={newOrg.contactEmail}
-                            onChange={(e) => setNewOrg(prev => ({ ...prev, contactEmail: e.target.value }))}
-                        />
-                    </Grid>
-                    <Grid item xs={{ span: 12 }} sm={{ span: 3 }}>
-                        <TextField
-                            label="Password"
-                            fullWidth
-                            size="small"
-                            type="password"
-                            value={newOrg.password}
-                            onChange={(e) => setNewOrg(prev => ({ ...prev, password: e.target.value }))}
-                        />
-                    </Grid>
-                    <Grid item xs={{ span: 12 }} sm={{ span: 3 }}>
-                        <TextField
-                            label="Location"
-                            fullWidth
-                            size="small"
-                            value={newOrg.location}
-                            onChange={(e) => setNewOrg(prev => ({ ...prev, location: e.target.value }))}
-                        />
-                    </Grid>
-                    <Grid item xs={{ span: 12 }} sm={{ span: 1 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={createOrganization}
-                            disabled={submittingOrg}
-                        >
-                            {submittingOrg ? <CircularProgress size={18} color="inherit" /> : 'Add'}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Box>
-
-            <DataGrid
-                rows={organizations}
-                columns={columns}
-                loading={loading}
-                initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                pageSizeOptions={[10, 25, 50]}
-                autoHeight
-                disableRowSelectionOnClick
-                getRowId={(row) => row.id}
-            />
-            <Dialog open={statusDialog.open} onClose={() => setStatusDialog(prev => ({ ...prev, open: false }))}>
-                <DialogTitle>Confirm Organization Status Change</DialogTitle>
-                <DialogContent>
-                    <Typography>Set organization "{statusDialog.name}" to {statusDialog.target}?</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setStatusDialog(prev => ({ ...prev, open: false }))}>Cancel</Button>
-                    <Button onClick={() => { updateStatus(statusDialog.id, statusDialog.target); setStatusDialog(prev => ({ ...prev, open: false })); }} color="primary">Confirm</Button>
-                </DialogActions>
-            </Dialog>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-        </Paper>
-    );
-}
-
-// --------------------------------------------------------------------
-// 📦 COMPONENT: Item Assignment View
-// --------------------------------------------------------------------
-function AdminItemAssignmentPage() {
-    const [donations, setDonations] = useState([]);
-    const [organizations, setOrganizations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [assigningId, setAssigningId] = useState(null);
-    const [assignSnackbar, setAssignSnackbar] = useState({ open: false, message: '', severity: 'success' });
-    const [selectedOrg, setSelectedOrg] = useState({});
-
-    useEffect(() => {
-        fetchData();
-        const listener = () => fetchData();
-        window.addEventListener('donationUpdated', listener);
-        return () => window.removeEventListener('donationUpdated', listener);
-    }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const token = getToken();
-
-            const donationRes = await axios.get(`${baseurl}/api/donations/admin/unassigned-items`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            const orgRes = await axios.get(`${baseurl}/api/admin/organizations?status=Active`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            setDonations(donationRes.data);
-            setOrganizations(orgRes.data);
-            
-            const initialOrgState = donationRes.data.reduce((acc, d) => ({
-                ...acc,
-                [d._id]: ''
-            }), {});
-            setSelectedOrg(initialOrgState);
-
-        } catch (error) {
-            console.error("❌ Error fetching assignment data:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const handleOrgChange = (donationId, orgId) => {
-        setSelectedOrg(prev => ({ ...prev, [donationId]: orgId }));
-    };
-
-    const handleAssignment = async (donationId) => {
-        const orgId = selectedOrg[donationId];
-        if (!orgId) return setAssignSnackbar({ open: true, message: 'Please select an organization first', severity: 'warning' });
-        
-        setAssigningId(donationId);
-        try {
-            const token = getToken();
-            
-            await axios.patch(`${baseurl}/api/donations/admin/assign/${donationId}`, { organizationId: orgId }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setDonations(prev => prev.filter(d => d._id !== donationId));
-            // Notify other components that donation changed
-            window.dispatchEvent(new Event('donationUpdated'));
-            setAssignSnackbar({ open: true, message: 'Donation assigned successfully', severity: 'success' });
-            
-        } catch (error) {
-            console.error("❌ Error assigning donation:", error);
-            setAssignSnackbar({ open: true, message: 'Assignment failed. See console for details', severity: 'error' });
-        } finally {
-            setAssigningId(null);
-        }
-    };
-
-    const unassignedItemDonations = donations.filter(d => d.type === 'Item' && d.status === 'Approved');
-    
-    return (
-        <Paper sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>S
-                Item Assignment Queue
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-                Assign Approved Item Donations to an active organization.
-            </Typography>
-
-            {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
-            ) : unassignedItemDonations.length === 0 ? (
-                <Typography variant="h6" color="text.secondary" sx={{ p: 5, textAlign: 'center' }}>
-                    ✅ No approved item donations available for assignment.
-                </Typography>
-            ) : (
-                <TableContainer>
-                    <Table size="small">        
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Donation ID</TableCell>
-                                <TableCell>Items Donated</TableCell>
-                                <TableCell>Donor Address</TableCell>
-                                <TableCell>Assign To Organization</TableCell>
-                                <TableCell align="center">Action</TableCell>
+                                </TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {unassignedItemDonations.map((d) => (
-                                <TableRow key={d._id} hover>
-                                    <TableCell>{d._id.substring(0, 8)}...</TableCell>
-                                    <TableCell>
-                                        <Box>
-                                            <Chip label={`${d.itemDetails?.length || 0} items`} size="small" color="primary" />
-                                            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.6 }}>
-                                                {d.itemDetails?.map(it => `${it.name} x${it.quantity}`).join(', ')}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{d.address ? (d.address.substring(0, 30) + '...') : '—'}</TableCell>
-                                    <TableCell sx={{ minWidth: 250 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Select Organization</InputLabel>
-                                            <Select
-                                                value={selectedOrg[d._id] || ''}
-                                                label="Select Organization"
-                                                onChange={(e) => handleOrgChange(d._id, e.target.value)}
-                                                disabled={assigningId === d._id || organizations.length === 0}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>{organizations.length === 0 ? "No organizations available" : "Select an organization"}</em>
-                                                </MenuItem>
-                                                {organizations.map((org) => (
-                                                    <MenuItem key={org._id} value={org._id}>
-                                                        {org.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Button
-                                            variant="contained"
-                                            color="secondary"
-                                            onClick={() => handleAssignment(d._id)}
-                                            disabled={!selectedOrg[d._id] || assigningId === d._id}
-                                        >
-                                            {assigningId === d._id ? <CircularProgress size={20} color="inherit" /> : 'Assign'}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
-            <Snackbar
-                open={assignSnackbar.open}
-                autoHideDuration={3500}
-                onClose={() => setAssignSnackbar(prev => ({ ...prev, open: false }))}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert severity={assignSnackbar.severity} onClose={() => setAssignSnackbar(prev => ({ ...prev, open: false }))}>
-                    {assignSnackbar.message}
-                </Alert>
-            </Snackbar>
-        </Paper>
-    );
-}
+                        ))}
+                        {requests.length === 0 && <TableRow><TableCell colSpan={4} align="center" sx={{ color: darkTheme.textSec, py: 4 }}>No requests found.</TableCell></TableRow>}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-function AdminUsersPage() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
-
-  useEffect(() => { fetchUsers(); }, []);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await axios.get(`${baseurl}/api/users`, { headers: { Authorization: `Bearer ${token}` } });
-      setUsers(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error('Fetch users error', err);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleRole = async (id, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin';
-    try {
-      const token = getToken();
-      const res = await axios.patch(`${baseurl}/api/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data && res.data.user) setUsers(prev => prev.map(u => u._id === id ? res.data.user : u));
-      setSnack({ open: true, message: 'User role updated', severity: 'success' });
-    } catch (err) {
-      console.error('Update role error', err);
-      setSnack({ open: true, message: 'Update failed', severity: 'error' });
-    }
-  };
-
-  const columns = [
-    { field: 'fname', headerName: 'Name', width: 220, renderCell: (params) => { try { if (!params || !params.row) return null; const val = params?.value ?? params.row?.fname ?? params.row?.name; return <Typography sx={{ fontWeight: 700 }}>{val || '—'}</Typography>; } catch (err) { console.error('User name cell render error', err, params); return <Typography color="error">Err</Typography>; } } },
-    { field: 'ename', headerName: 'Email', width: 260, valueGetter: (params) => { if (!params) return ''; return params?.value ?? params?.row?.ename ?? params?.row?.email; } },
-    { field: 'role', headerName: 'Role', width: 120, renderCell: (params) => { try { if (!params || !params.row) return null; const v = params?.value ?? params.row?.role ?? 'user'; return <Chip size="small" label={v} color={v === 'admin' ? 'primary' : 'default'} /> } catch (err) { console.error('User role cell render error', err, params); return <Chip size="small" label="err" /> } } },
-    { field: 'city', headerName: 'City', width: 160 },
-    { field: 'createdAt', headerName: 'Joined', width: 180, valueGetter: (params) => { try { if (!params) return ''; const raw = params?.row?.createdAt ?? params?.value; if (!raw) return ''; const dt = new Date(raw); return isNaN(dt.getTime()) ? '' : dt.toLocaleString(); } catch (err) { console.error('createdAt formatter error', err, params); return ''; } } },
-    { field: 'actions', headerName: 'Actions', width: 180, sortable: false, filterable: false, renderCell: (params) => { try { if (!params || !params.row) return null; return (
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Button size="small" variant="outlined" onClick={() => toggleRole(params.row._id, params.row.role)}>
-          {params.row.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
-        </Button>
-      </Box>
-    ); } catch (err) { console.error('User actions cell render error', err, params); return <Typography color="error">Err</Typography>; } } }
-  ];
-
-  return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h5" fontWeight={700} gutterBottom>Users</Typography>
-      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Manage registered users</Typography>
-      <DataGrid rows={users} columns={columns} loading={loading} autoHeight getRowId={(row) => row._id} />
-      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert severity={snack.severity} onClose={() => setSnack(prev => ({ ...prev, open: false }))}>{snack.message}</Alert>
-      </Snackbar>
-    </Paper>
-  );
-}
-
-// --------------------------------------------------------------------
-// ⭐️ MAIN COMPONENT (Refactored to be the Tab Container)
-// --------------------------------------------------------------------
-
-export default function AdminDashboard() {
-  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
-  const [currentTab, setCurrentTab] = useState("Analytics");
-  
-  // State for Analytics data (lifted up for potential refresh)
-  const [stats, setStats] = useState(null);
-  const [moneyData, setMoneyData] = useState([]);
-  const [itemData, setItemData] = useState([]);
-  const [recent, setRecent] = useState([]);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
-
-  // Sidebar responsive helpers
-  const drawerWidth = 240;
-  const collapsedWidth = 72;
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
-  const handleSidebarToggle = () => setSidebarOpen((s) => !s);
-
-  // Broadcast sidebar state so other components (like the main Nav) can adjust
-  useEffect(() => {
-    const detail = { open: sidebarOpen, width: sidebarOpen ? drawerWidth : collapsedWidth };
-    window.dispatchEvent(new CustomEvent('adminSidebarChanged', { detail }));
-  }, [sidebarOpen]);
-
-
-  const loadAllAnalyticsData = async () => {
-    setLoadingAnalytics(true);
-    try {
-        const token = getToken();
-        const headers = { Authorization: `Bearer ${token}` };
-
-        const [statsRes, moneyRes, itemRes, recentRes] = await Promise.all([
-            axios.get(`${baseurl}/api/donations/admin/stats`, { headers }),
-            axios.get(`${baseurl}/api/donations/admin/analytics/money`, { headers }),
-            axios.get(`${baseurl}/api/donations/admin/analytics/items`, { headers }),
-            axios.get(`${baseurl}/api/donations/admin/recent-donations`, { headers }),
-        ]);
-
-        setStats(statsRes.data);
-        
-        setMoneyData(moneyRes.data.map((m) => ({ month: `Month ${m._id}`, total: m.total })));
-        
-        setItemData(itemRes.data.map((item) => ({ name: item._id, value: item.total })));
-        
-        setRecent(recentRes.data);
-    } catch (error) {
-        console.error("Error loading dashboard data:", error);
-    } finally {
-        setLoadingAnalytics(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAllAnalyticsData();
-  }, []);
-
-  const handleChange = (_, newValue) => {
-    setCurrentTab(newValue);
-  };
-  
-  const COLORS = ["#1976d2", "#e53935", "#43a047", "#fbc02d", "#ab47bc"];
-
-  // Tab content mapping
-  const TABS = {
-    Analytics: { 
-        component: <DashboardAnalytics 
-                        stats={stats} 
-                        moneyData={moneyData} 
-                        itemData={itemData} 
-                        recent={recent} 
-                        COLORS={COLORS}
-                        loading={loadingAnalytics}
-                        reloadData={loadAllAnalyticsData}
-                   />, 
-        label: "Analytics & Summary",
-        icon: <DashboardIcon />
-    },
-    Users: {
-        component: <AdminUsersPage />,
-        label: "Users",
-        icon: <PeopleIcon />
-    },
-    Organizations: { 
-        component: <AdminOrganizationPage />, 
-        label: "Manage Organizations",
-        icon: <AccountBalanceIcon />
-    },
-    Assignments: { 
-        component: <AdminItemAssignmentPage />, 
-        label: "Donation Assignments",
-        icon: <AssignmentTurnedInIcon />
-    },
-    Requests: {
-        component: <AdminRequestsPage />,
-        label: "Organization Requests",
-        icon: <AssignmentTurnedInIcon />
-    },
-  };
-
-  const drawer = (
-    <Box sx={{ width: sidebarOpen ? drawerWidth : collapsedWidth, transition: 'width 225ms cubic-bezier(0,0,0.2,1)' }} role="presentation">
-      <Toolbar sx={{ display: 'flex', justifyContent: sidebarOpen ? 'flex-end' : 'center', px: 1 }}>
-        <IconButton size="small" onClick={handleSidebarToggle} sx={{ color: 'primary.main' }}>
-          {sidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-        </IconButton>
-      </Toolbar>
-      <Divider />
-      <Box sx={{ p: 2 }}>
-        <List>
-          {Object.keys(TABS).map((key) => (
-            <MuiTooltip key={key} title={!sidebarOpen ? TABS[key].label : ''} placement="right" arrow>
-              <ListItemButton
-                selected={currentTab === key}
-                onClick={() => { setCurrentTab(key); setMobileOpen(false); }}
-                sx={{ borderRadius: 1, mb: 1, justifyContent: sidebarOpen ? 'flex-start' : 'center', px: sidebarOpen ? 2 : 1 }}
-              >
-                <ListItemIcon sx={{ minWidth: sidebarOpen ? 40 : 'auto', justifyContent: 'center' }}>{TABS[key].icon}</ListItemIcon>
-                {sidebarOpen && <ListItemText primary={TABS[key].label} primaryTypographyProps={{ fontWeight: 700 }} />}
-              </ListItemButton>
-            </MuiTooltip>
-          ))}
-        </List>
-      </Box>
-    </Box>
-  );
-
-  return (
-    <Box sx={{ display: 'flex', background: 'background.default', minHeight: "100vh" }}>
-      <Box sx={{ width: '100%' }}>
-        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: { md: `${sidebarOpen ? drawerWidth : collapsedWidth}px` }, transition: 'margin 225ms cubic-bezier(0,0,0.2,1)', position: 'relative', zIndex: (theme) => theme.zIndex.drawer + 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: 'none' } }}>
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h4" fontWeight={700} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Global Administrator Control Panel
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box component="nav" aria-label="admin sidebar">
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{ keepMounted: true }}
-            sx={{ display: { xs: 'block', md: 'none' }, zIndex: (theme) => theme.zIndex.drawer + 10, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}
-            PaperProps={{ sx: { width: drawerWidth } }}
-          >
-            {drawer}
-          </Drawer>
-
-          <Drawer
-            variant="permanent"
-            sx={{ display: { xs: 'none', md: 'block' }, zIndex: (theme) => theme.zIndex.drawer + 1, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: sidebarOpen ? drawerWidth : collapsedWidth, position: 'fixed', transition: 'width 225ms cubic-bezier(0,0,0.2,1)' } }}
-            open
-            PaperProps={{ sx: { width: sidebarOpen ? drawerWidth : collapsedWidth } }}
-          >
-            {drawer}
-          </Drawer>
-        </Box>
-
-        <Box component="main" sx={{ flexGrow: 1, p: 4, ml: { md: `${sidebarOpen ? drawerWidth : collapsedWidth}px` }, transition: 'margin 225ms cubic-bezier(0,0,0.2,1)', minHeight: '100vh', overflow: 'auto' }}>
-          <Box sx={{ mb: 3 }}>
-            {/* Keep the existing header spacing */}
-          </Box>
-
-          <Box>
-            {TABS[currentTab].component}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
-}
-
-// --------------------------------------------------------------------
-// 🧾 COMPONENT: Organization Requests (Admin)
-// --------------------------------------------------------------------
-function AdminRequestsPage() {
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [openAssign, setOpenAssign] = useState(false);
-    const [selectedRequest, setSelectedRequest] = useState(null);
-    const [unassignedDonations, setUnassignedDonations] = useState([]); // flattened item-lines
-    const [pickedDonation, setPickedDonation] = useState(''); // stores 'donationId:itemIndex'
-    const [assignQuantity, setAssignQuantity] = useState(1);
-    const [processing, setProcessing] = useState(false);
-    const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
-
-    useEffect(() => {
-        fetchRequests();
-
-        // Refresh when other components update requests/donations
-        const handler = () => fetchRequests();
-        window.addEventListener('requestUpdated', handler);
-        window.addEventListener('donationUpdated', handler);
-        return () => {
-            window.removeEventListener('requestUpdated', handler);
-            window.removeEventListener('donationUpdated', handler);
-        };
-    }, []);
-
-    const fetchRequests = async () => {
-        setLoading(true);
-        try {
-            const token = getToken();
-            const res = await axios.get(`${baseurl}/api/admin/requests`, { headers: { Authorization: `Bearer ${token}` } });
-            setRequests(res.data);
-        } catch (err) {
-            console.error('Fetch requests error', err);
-            setRequests([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchUnassignedDonations = async () => {
-        try {
-            const token = getToken();
-            const res = await axios.get(`${baseurl}/api/donations/admin/unassigned-item-lines`, { headers: { Authorization: `Bearer ${token}` } });
-            setUnassignedDonations(res.data);
-        } catch (err) {
-            console.error('Fetch unassigned item lines failed', err);
-            setUnassignedDonations([]);
-        }
-    };
-
-    const openAssignDialog = async (request) => {
-        setSelectedRequest(request);
-        await fetchUnassignedDonations();
-        setPickedDonation('');
-        setAssignQuantity(1);
-        setOpenAssign(true);
-    };
-
-    const closeAssignDialog = () => {
-        setOpenAssign(false);
-        setPickedDonation('');
-        setAssignQuantity(1);
-        setSelectedRequest(null);
-    };
-
-    const assignDonationToRequest = async () => {
-        if (!pickedDonation || !selectedRequest) return;
-        setProcessing(true);
-        try {
-            const token = getToken();
-            const [donationId, itemIndex] = pickedDonation.split(':');
-            await axios.patch(`${baseurl}/api/admin/requests/assign-item/${selectedRequest._id}`, { donationId, itemIndex: Number(itemIndex), quantity: Number(assignQuantity) }, { headers: { Authorization: `Bearer ${token}` } });
-            setProcessing(false);
-            closeAssignDialog();
-            fetchRequests();
-            window.dispatchEvent(new Event('donationUpdated'));
-            setSnack({ open: true, message: 'Assigned donation item to request.', severity: 'success' });
-        } catch (err) {
-            console.error('Assign item to request error', err);
-            setProcessing(false);
-            setSnack({ open: true, message: 'Assignment failed', severity: 'error' });
-        }
-    };
-
-    const updateReqStatus = async (id, status) => {
-        try {
-            const token = getToken();
-            await axios.patch(`${baseurl}/api/admin/requests/status/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
-            fetchRequests();
-        } catch (err) {
-            console.error('Update request status error', err);
-        }
-    };
-
-    const columns = [
-        { field: 'organization', headerName: 'Organization', width: 240, renderCell: (params) => {
-            const org = params?.row?.organizationId;
-            let name = '';
-            if (org && typeof org === 'object') name = org.name || org.contactEmail || String(org._id || '');
-            else if (org && typeof org === 'string') name = org;
-            else name = params?.row?.organizationName || 'Unknown org';
-            return <Typography sx={{ fontWeight: 600 }}>{name}</Typography>;
-        } },
-        { field: 'items', headerName: 'Requested Items', width: 360, renderCell: (params) => { try { return (
-            <Box>
-                {Array.isArray(params?.row?.items) ? params.row.items.map((it, i) => <Chip key={i} label={`${it.name} x${it.quantity}`} sx={{ mr: 0.5 }} size="small" />) : <Typography color="text.secondary">—</Typography>}
-            </Box>
-        ); } catch (err) { console.error('Requested items cell error', err, params); return <Typography color="error">Err</Typography>; } } },
-        { field: 'status', headerName: 'Status', width: 120, renderCell: (params) => <Chip label={params?.value} color={getStatusColor(params?.value)} size="small" /> },
-        { field: 'assignedDonationId', headerName: 'Assigned Donation (Donated Items)', width: 300, renderCell: (params) => { try { const d = params?.row?.assignedDonationId; if (!d) return <Typography color="text.secondary">—</Typography>; const idShort = d._id ? `${d._id.substring(0,8)}...` : 'Donation'; const items = d.itemDetails && Array.isArray(d.itemDetails) && d.itemDetails.length ? d.itemDetails.map(it => `${it.name} x${it.quantity}`).join(', ') : ''; return (
-                <Box>
-                    <Typography sx={{ fontWeight: 700 }}>{idShort}</Typography>
-                    {items && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{items}</Typography>}
-                </Box>
-            ); } catch (err) { console.error('Assigned donation cell error', err, params); return <Typography color="error">Err</Typography>; } } },
-        { field: 'createdAt', headerName: 'Requested', width: 160, valueGetter: (params) => {
-            const raw = params?.row?.createdAt;
-            const dt = raw ? new Date(raw) : null;
-            return dt && !isNaN(dt.getTime()) ? dt.toLocaleString() : '';
-        } },
-        { field: 'actions', headerName: 'Actions', width: 180, sortable: false, filterable: false, renderCell: (params) => (
-            <Box>
-                {params.row.status === 'Pending' && (
-                    <MuiTooltip title="Approve request">
-                        <IconButton size="small" color="success" onClick={() => updateReqStatus(params.row._id, 'Approved')}><CheckIcon /></IconButton>
-                    </MuiTooltip>
-                )}
-                {params.row.status !== 'Rejected' && (
-                    <MuiTooltip title="Reject request">
-                        <IconButton size="small" color="error" onClick={() => updateReqStatus(params.row._id, 'Rejected')}><BlockIcon /></IconButton>
-                    </MuiTooltip>
-                )}
-                {params.row.status === 'Approved' && (
-                    <MuiTooltip title="Assign donation">
-                        <IconButton size="small" color="primary" onClick={() => openAssignDialog(params.row)}><AssignmentTurnedInIcon /></IconButton>
-                    </MuiTooltip>
-                )}
-            </Box>
-        ) }
-    ];
-
-    return (
-        <Paper sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight={700} gutterBottom>Organization Requests</Typography>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Review requests submitted by organizations and assign donations for pickup.</Typography>
-            <DataGrid rows={requests} columns={columns} loading={loading} autoHeight getRowId={(row) => row._id} />
-
-            <Dialog open={openAssign} onClose={closeAssignDialog} fullWidth maxWidth="md">
+            {/* ASSIGN DIALOG */}
+            <Dialog open={openAssign} onClose={() => setOpenAssign(false)} maxWidth="md" fullWidth PaperProps={{ sx: { bgcolor: darkTheme.card, color: darkTheme.text } }}>
                 <DialogTitle>Assign Donation to Request</DialogTitle>
                 <DialogContent>
-                    {unassignedDonations.length === 0 ? (
-                        <Typography>No unassigned item donations available</Typography>
-                    ) : (
-                        <>
-                            <RadioGroup value={pickedDonation} onChange={(e) => {
-                                const val = e.target.value;
-                                setPickedDonation(val);
-                                // set default quantity to available for the selected line
-                                const [donationId, idx] = val.split(':');
-                                const line = unassignedDonations.find(l => String(l.donationId) === donationId && String(l.itemIndex) === idx);
-                                setAssignQuantity(line ? Math.max(1, Math.min(line.quantity, line.quantity)) : 1);
-                            }}>
-                                {unassignedDonations.map((line, i) => (
-                                    <FormControlLabel 
-                                        key={`${line.donationId}-${line.itemIndex}-${i}`} 
-                                        value={`${line.donationId}:${line.itemIndex}`} 
-                                        control={<Radio />} 
-                                        label={`${line.donationShort} - ${line.name} (qty: ${line.quantity}) - ${line.createdAt ? new Date(line.createdAt).toLocaleDateString() : 'Unknown'}`} 
-                                    />
+                    <DialogContentText sx={{ color: darkTheme.textSec, mb: 2 }}>
+                        Select an available donation to fulfill this request for <strong>{selectedReq?.organizationName}</strong>.
+                        <br />Requesting: {(selectedReq?.items || []).map(i => i.name).join(', ')}
+                    </DialogContentText>
+                    <TableContainer component={Paper} sx={{ bgcolor: darkTheme.bg, border: `1px solid ${darkTheme.borderColor}` }}>
+                        <Table size="small">
+                            <TableHead><TableRow><TableCell sx={{ color: darkTheme.textSec }}>Donor</TableCell><TableCell sx={{ color: darkTheme.textSec }}>Items</TableCell><TableCell sx={{ color: darkTheme.textSec }}>Action</TableCell></TableRow></TableHead>
+                            <TableBody>
+                                {availableDonations.map(d => (
+                                    <TableRow key={d._id}>
+                                        <TableCell sx={{ color: darkTheme.text }}>{d.donorName || 'Donor'} <br /><Typography variant="caption" sx={{ color: darkTheme.textSec }}>{d.address}</Typography></TableCell>
+                                        <TableCell sx={{ color: darkTheme.text }}>
+                                            <ul style={{ margin: 0, paddingLeft: 16 }}>{(d.itemDetails || []).map((i, x) => <li key={x}>{i.name} (x{i.quantity})</li>)}</ul>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button size="small" variant="contained" sx={{ bgcolor: darkTheme.primary }} onClick={() => handleAssignConfirm(d._id)}>Select</Button>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                            </RadioGroup>
-
-                            <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
-                                <TextField
-                                    label="Quantity to assign"
-                                    size="small"
-                                    type="number"
-                                    value={assignQuantity}
-                                    onChange={(e) => {
-                                        const val = Math.max(1, Number(e.target.value || 1));
-                                        // cap at selected line quantity
-                                        if (!pickedDonation) return setAssignQuantity(val);
-                                        const [donationId, idx] = pickedDonation.split(':');
-                                        const line = unassignedDonations.find(l => String(l.donationId) === donationId && String(l.itemIndex) === idx);
-                                        if (line) setAssignQuantity(Math.min(val, line.quantity));
-                                        else setAssignQuantity(val);
-                                    }}
-                                    InputProps={{ inputProps: { min: 1 } }}
-                                />
-                            </Box>
-                        </>
-                    )}
+                                {availableDonations.length === 0 && <TableRow><TableCell colSpan={3} align="center" sx={{ color: darkTheme.textSec, py: 2 }}>No unassigned donations available.</TableCell></TableRow>}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeAssignDialog}>Cancel</Button>
-                    <Button onClick={assignDonationToRequest} disabled={!pickedDonation || processing}>{processing ? <CircularProgress size={18} /> : 'Assign'}</Button>
+                    <Button onClick={() => setOpenAssign(false)} sx={{ color: darkTheme.textSec }}>Cancel</Button>
                 </DialogActions>
             </Dialog>
-            <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-                <Alert severity={snack.severity} onClose={() => setSnack(prev => ({ ...prev, open: false }))}>{snack.message}</Alert>
-            </Snackbar>
-        </Paper>
-    );
+        </Box>
+    )
 }
