@@ -22,6 +22,7 @@ const AdminItemsPage = () => {
     name: '',
     description: '',
     quantityNeeded: 0,
+    priority: 'Medium',
     category: 'Other',
   });
 
@@ -58,7 +59,7 @@ const AdminItemsPage = () => {
   const handleOpen = (item = null) => {
     setEditItem(item);
     setFormData(
-      item || { name: '', description: '', quantityNeeded: 0, category: 'Other' }
+      item || { name: '', description: '', quantityNeeded: 0, priority: 'Medium', category: 'Other' }
     );
     setOpen(true);
   };
@@ -112,6 +113,7 @@ const AdminItemsPage = () => {
     { field: 'name', headerName: 'Name', width: 160 },
     { field: 'description', headerName: 'Description', width: 260 },
     { field: 'quantityNeeded', headerName: 'Qty Needed', width: 130 },
+    { field: 'priority', headerName: 'Priority', width: 130 },
     { field: 'category', headerName: 'Category', width: 130 },
 
     {
@@ -204,6 +206,21 @@ const AdminItemsPage = () => {
             }
             sx={{ mb: 2 }}
           />
+
+          <TextField
+            select
+            label="Priority"
+            fullWidth
+            value={formData.priority || 'Medium'}
+            onChange={(e) =>
+              setFormData({ ...formData, priority: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="High">High</MenuItem>
+            <MenuItem value="Medium">Medium</MenuItem>
+            <MenuItem value="Low">Low</MenuItem>
+          </TextField>
 
           <TextField
             select

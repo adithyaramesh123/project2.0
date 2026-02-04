@@ -34,8 +34,11 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    Drawer // Imported Drawer
 } from "@mui/material";
+import { useTheme } from "./ThemeContext"; // Use Custom Theme Context
+import { useTheme as useMuiTheme } from "@mui/material/styles"; // Rename MUI hook
 
 // Icons
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -58,6 +61,7 @@ import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 import HistoryIcon from '@mui/icons-material/History';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import MenuIcon from "@mui/icons-material/Menu"; // Imported MenuIcon
 
 // Third-party
 import {
@@ -69,9 +73,6 @@ import axios from "axios";
 
 /* ------------------------------------------------------------------
    🎨 THEME CONSTANTS (Dark + Green)
------------------------------------------------------------------- */
-/* ------------------------------------------------------------------
-   🎨 THEME DEFINITIONS
 ------------------------------------------------------------------ */
 const DARK_THEME = {
     mode: 'dark',
@@ -299,13 +300,18 @@ const RecentDonationsList = ({ donations, onUpdateStatus, theme }) => {
 export default function Admindash() {
     const navigate = useNavigate();
     const baseurl = import.meta.env.VITE_API_BASE_URL || '';
+
+    // Use Custom Context for Global State
+    const { darkMode, toggleTheme } = useTheme();
+
     const [activeTab, setActiveTab] = useState("Dashboard");
     const [stats, setStats] = useState({ users: 0, donations: 0, totalAmount: 0, topDonors: [] });
     const [itemData, setItemData] = useState([]);
     const [recent, setRecent] = useState([]);
-    const [mode, setMode] = useState('dark');
 
-    const theme = mode === 'dark' ? DARK_THEME : LIGHT_THEME;
+    const [mobileOpen, setMobileOpen] = useState(false); // Mobile drawer state
+
+    const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
     const MENU_ITEMS = [
         { id: "Dashboard", label: "Dashboard", icon: <DashboardIcon /> },
@@ -344,6 +350,43 @@ export default function Admindash() {
         };
         loadData();
     }, [baseurl, navigate]);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    /* REUSABLE SIDEBAR CONTENT (Used in both Desktop and Mobile Drawer) */
+    const drawerContent = (
+        <Box sx={{ height: '100%', display: "flex", flexDirection: "column", p: 2, bgcolor: theme.bg, color: theme.text }}>
+            <Typography variant="h5" sx={{ color: theme.primary, fontWeight: 900, mb: 4, px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>Changing<span style={{ color: theme.text }}>Lives</span></Typography>
+            <List sx={{ flex: 1 }}>
+                {MENU_ITEMS.map((item) => (
+                    <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
+                        <ListItemButton
+                            onClick={() => { setActiveTab(item.id); setMobileOpen(false); }}
+                            sx={{
+                                borderRadius: 2,
+                                bgcolor: activeTab === item.id ? theme.primary : "transparent",
+                                color: activeTab === item.id ? (theme.mode === 'dark' ? "#fff" : theme.bg) : theme.textSec,
+                                "&:hover": {
+                                    bgcolor: activeTab === item.id ? theme.primary : theme.mode === 'dark' ? "#1f2937" : "#e5e7eb",
+                                    color: activeTab === item.id ? "white" : theme.text
+                                }
+                            }}
+                        >
+                            <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>{item.icon}</ListItemIcon>
+                            <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 600 }} />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
+            </List>
+            <Box sx={{ p: 2, bgcolor: theme.mode === 'dark' ? "#1f2937" : "#e5e7eb", borderRadius: 2, mt: "auto" }}>
+                <Typography variant="subtitle2" sx={{ color: theme.text, fontWeight: "bold" }}>Admin User</Typography>
+                <Typography variant="caption" sx={{ color: theme.textSec }}>admin@changinglives.com</Typography>
+                <Button startIcon={<LogoutIcon />} fullWidth size="small" sx={{ mt: 1, color: theme.danger, justifyContent: "flex-start", px: 0 }} onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate("/login"); }}>Logout</Button>
+            </Box>
+        </Box>
+    );
 
     /* DASHBOARD RENDER */
     const renderDashboard = () => (
@@ -424,7 +467,7 @@ export default function Admindash() {
                     }}>
                         <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <Typography variant="h6" sx={{ color: theme.text, mb: 2, fontWeight: 'bold' }}>Activity Volume</Typography>
-                            <Box sx={{ flex: 1, minHeight: 0 }}>
+                            <Box sx={{ flex: 1, minHeight: 300 }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={[{ n: 'Mon', v: 12 }, { n: 'Tue', v: 19 }, { n: 'Wed', v: 3 }, { n: 'Thu', v: 5 }, { n: 'Fri', v: 2 }]}>
                                         <XAxis dataKey="n" stroke={theme.textSec} tick={{ fill: theme.textSec, fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
@@ -465,37 +508,50 @@ export default function Admindash() {
 
     return (
         <Box sx={{ display: "flex", bgcolor: theme.bg, minHeight: "100vh", color: theme.text }}>
-            <Box sx={{ width: 260, borderRight: `1px solid ${theme.borderColor}`, display: { xs: "none", md: "flex" }, flexDirection: "column", p: 2 }}>
-                <Typography variant="h5" sx={{ color: theme.primary, fontWeight: 900, mb: 4, px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>Changing<span style={{ color: theme.text }}>Lives</span></Typography>
-                <List sx={{ flex: 1 }}>
-                    {MENU_ITEMS.map((item) => (
-                        <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
-                            <ListItemButton onClick={() => setActiveTab(item.id)} sx={{ borderRadius: 2, bgcolor: activeTab === item.id ? theme.primary : "transparent", color: activeTab === item.id ? (theme.mode === 'dark' ? "#fff" : theme.bg) : theme.textSec, "&:hover": { bgcolor: activeTab === item.id ? theme.primary : theme.mode === 'dark' ? "#1f2937" : "#e5e7eb", color: activeTab === item.id ? "white" : theme.text } }}>
-                                <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>{item.icon}</ListItemIcon>
-                                <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 600 }} />
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
-                </List>
-                <Box sx={{ p: 2, bgcolor: theme.mode === 'dark' ? "#1f2937" : "#e5e7eb", borderRadius: 2, mt: "auto" }}>
-                    <Typography variant="subtitle2" sx={{ color: theme.text, fontWeight: "bold" }}>Admin User</Typography>
-                    <Typography variant="caption" sx={{ color: theme.textSec }}>admin@changinglives.com</Typography>
-                    <Button startIcon={<LogoutIcon />} fullWidth size="small" sx={{ mt: 1, color: theme.danger, justifyContent: "flex-start", px: 0 }} onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate("/login"); }}>Logout</Button>
-                </Box>
+            {/* Desktop Sidebar (Permanent) */}
+            <Box sx={{ width: 260, borderRight: `1px solid ${theme.borderColor}`, display: { xs: "none", md: "block" } }}>
+                {drawerContent}
             </Box>
 
+            {/* Mobile Sidebar (Temporary Drawer) */}
+            <Drawer
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{ keepMounted: true }}
+                sx={{
+                    display: { xs: 'block', md: 'none' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 260, bgcolor: theme.bg, borderRight: `1px solid ${theme.borderColor}` },
+                }}
+            >
+                {drawerContent}
+            </Drawer>
+
             <Box sx={{ flex: 1, height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                <Box sx={{ height: 64, borderBottom: `1px solid ${theme.borderColor}`, display: "flex", alignItems: "center", justifyContent: "space-between", px: 4 }}>
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>{MENU_ITEMS.find(i => i.id === activeTab)?.label || 'Overview'}</Typography>
+                <Box sx={{ height: 64, borderBottom: `1px solid ${theme.borderColor}`, display: "flex", alignItems: "center", justifyContent: "space-between", px: { xs: 2, md: 4 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {/* Hamburger Button - Visible on Mobile */}
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{ mr: 2, display: { md: 'none' }, color: theme.text }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>{MENU_ITEMS.find(i => i.id === activeTab)?.label || 'Overview'}</Typography>
+                    </Box>
+
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <TextField placeholder="Search..." size="small" variant="outlined" InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: theme.textSec }} /></InputAdornment>) }} sx={{ bgcolor: theme.mode === 'dark' ? "#1f2937" : "#f3f4f6", borderRadius: 2, "& fieldset": { border: "none" }, input: { color: theme.text } }} />
-                        <IconButton onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} sx={{ color: theme.text }}>
-                            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+                        <TextField placeholder="Search..." size="small" variant="outlined" InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: theme.textSec }} /></InputAdornment>) }} sx={{ display: { xs: 'none', sm: 'block' }, bgcolor: darkMode ? "#1f2937" : "#f3f4f6", borderRadius: 2, "& fieldset": { border: "none" }, input: { color: theme.text } }} />
+                        <IconButton onClick={toggleTheme} sx={{ color: theme.text }}>
+                            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
                         </IconButton>
                         <IconButton sx={{ color: theme.textSec }}><NotificationsIcon /></IconButton>
                     </Box>
                 </Box>
-                <Box sx={{ flex: 1, overflowY: "auto", p: 4, ...scrollbarStyle }}>
+                <Box sx={{ flex: 1, overflowY: "auto", p: { xs: 2, md: 4 }, ...scrollbarStyle }}>
                     {activeTab === "Dashboard" && renderDashboard()}
                     {activeTab === "Recent" && <RecentDonationsList donations={recent} theme={theme} />}
                     {activeTab === "Students" && <AdminUsersPage darkTheme={theme} baseurl={baseurl} />}
