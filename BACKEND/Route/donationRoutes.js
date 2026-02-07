@@ -390,8 +390,13 @@ router.get("/admin/recent-donations", async (_req, res) => {
 ============================================================ */
 router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
   try {
-    // Include donations that are fully approved or partially assigned (have remaining items)
-    const unassigned = await Donation.find({ type: 'Item', status: { $in: ['Approved', 'PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
+    // Include donations that are approved or partially assigned AND have remaining items (itemDetails not empty)
+    const unassigned = await Donation.find({ 
+      type: 'Item', 
+      status: { $in: ['Approved', 'PartiallyAssigned'] }, 
+      organization: null,
+      $expr: { $gt: [{ $size: { $ifNull: ['$itemDetails', []] } }, 0] } // Only if itemDetails has items
+    }).sort({ createdAt: -1 });
     res.json(unassigned);
   } catch (err) {
     console.error('Unassigned items fetch error', err);
@@ -404,7 +409,12 @@ router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
 router.get('/admin/unassigned-item-lines', adminAuth, async (_req, res) => {
   try {
     // Include donations that are Approved or PartiallyAssigned so remaining items are visible
-    const donations = await Donation.find({ type: 'Item', status: { $in: ['Approved', 'PartiallyAssigned'] }, organization: null }).sort({ createdAt: -1 });
+    const donations = await Donation.find({ 
+      type: 'Item', 
+      status: { $in: ['Approved', 'PartiallyAssigned'] }, 
+      organization: null,
+      $expr: { $gt: [{ $size: { $ifNull: ['$itemDetails', []] } }, 0] } // Only if itemDetails has items
+    }).sort({ createdAt: -1 });
     const lines = [];
     donations.forEach(d => {
       (d.itemDetails || []).forEach((it, idx) => {
@@ -560,7 +570,7 @@ router.patch('/requests/:id/status', async (req, res) => {
 ============================================================ */
 router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
   try {
-    const { organizationId } = req.body;
+    const { organizationId, selectedItems } = req.body;
     if (!organizationId) return res.status(400).json({ error: 'organizationId is required' });
 
     const org = await Organization.findById(organizationId);
@@ -569,33 +579,87 @@ router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
     const donation = await Donation.findById(req.params.id);
     if (!donation) return res.status(404).json({ error: 'Donation not found' });
     if (donation.type !== 'Item') return res.status(400).json({ error: 'Only item donations can be assigned' });
-    if (donation.status !== 'Approved') return res.status(400).json({ error: 'Donation must be Approved to assign' });
+    if (!['Approved', 'PartiallyAssigned'].includes(donation.status)) return res.status(400).json({ error: 'Donation must be Approved or PartiallyAssigned to assign' });
 
-    // Assign donation to organization
-    donation.organization = organizationId;
-    donation.status = 'Assigned';
+    // Use selectedItems if provided, otherwise use all items (backward compatibility)
+    const itemsToAssign = selectedItems || (donation.itemDetails || []).map(i => ({ name: i.name, quantity: i.quantity }));
 
-    // Try to link to an existing organization request (Pending/Approved and not already assigned)
-    let matchingRequest = await OrganizationRequest.findOne({ organizationId, assignedDonationId: null, status: { $in: ['Pending', 'Approved'] } });
+    // Calculate remaining items
+    const remaining = (donation.itemDetails || []).map(item => {
+      const assigningQty = (itemsToAssign.find(a => a.name === item.name)?.quantity || 0);
+      const remainingQty = Math.max(0, item.quantity - assigningQty);
+      return { name: item.name, quantity: remainingQty };
+    }).filter(item => item.quantity > 0);
+
+    // Validate that we're not assigning more than available
+    for (let assignItem of itemsToAssign) {
+      const original = donation.itemDetails.find(i => i.name === assignItem.name);
+      if (!original || assignItem.quantity > original.quantity) {
+        return res.status(400).json({ error: `Invalid quantity for ${assignItem.name}` });
+      }
+    }
+
+    // Create a new donation for assigned items (to track the assignment)
+    const assignedDonation = new Donation({
+      userId: donation.userId,
+      type: 'Item',
+      itemDetails: itemsToAssign,
+      address: donation.address,
+      notes: donation.notes,
+      status: 'Assigned',
+      organization: organizationId,
+    });
+    await assignedDonation.save();
+
+    // Update original donation with remaining items
+    if (remaining.length === 0) {
+      // All items assigned, mark original as PartiallyAssigned (or could delete it)
+      donation.status = 'PartiallyAssigned'; // Indicates all items have been distributed
+      donation.itemDetails = [];
+    } else {
+      // Some items remain
+      donation.itemDetails = remaining;
+      donation.status = 'PartiallyAssigned';
+    }
+    await donation.save();
+
+    // Try to link to an existing organization request
+    let matchingRequest = await OrganizationRequest.findOne({ 
+      organizationId, 
+      assignedDonationId: null, 
+      status: { $in: ['Pending', 'Approved'] } 
+    });
+
     if (matchingRequest) {
-      matchingRequest.assignedDonationId = donation._id;
+      matchingRequest.assignedDonationId = assignedDonation._id;
       matchingRequest.status = 'Assigned';
       await matchingRequest.save();
-      donation.assignedRequestId = matchingRequest._id;
+      assignedDonation.assignedRequestId = matchingRequest._id;
+      await assignedDonation.save();
     } else {
-      // Create a new OrganizationRequest so that the organization can see this assignment in their dashboard
-      const items = (donation.itemDetails || []).map(it => ({ name: it.name, quantity: it.quantity }));
-      const newReq = await OrganizationRequest.create({ organizationId, items, status: 'Assigned', assignedDonationId: donation._id });
-      donation.assignedRequestId = newReq._id;
+      // Create a new OrganizationRequest for this delivery
+      const items = itemsToAssign.map(it => ({ name: it.name, quantity: it.quantity }));
+      const newReq = await OrganizationRequest.create({ 
+        organizationId, 
+        items, 
+        status: 'Assigned', 
+        assignedDonationId: assignedDonation._id 
+      });
+      assignedDonation.assignedRequestId = newReq._id;
+      await assignedDonation.save();
       matchingRequest = newReq;
     }
 
-    await donation.save();
-
-    res.json({ success: true, donation, request: matchingRequest });
+    res.json({ 
+      success: true, 
+      assignedDonation: assignedDonation,
+      originalDonation: donation,
+      remainingItems: remaining,
+      request: matchingRequest 
+    });
   } catch (err) {
     console.error('Assign donation error', err);
-    res.status(500).json({ error: 'Failed to assign donation' });
+    res.status(500).json({ error: 'Failed to assign donation', details: err.message });
   }
 });
 

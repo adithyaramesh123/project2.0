@@ -659,6 +659,8 @@ function AdminItemAssignmentPage({ baseurl, darkTheme }) {
     const [donations, setDonations] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const [selectedOrg, setSelectedOrg] = useState({});
+    const [selectedQuantities, setSelectedQuantities] = useState({}); // {donationId: {itemName: quantity}}
+    const [openDetailsDialog, setOpenDetailsDialog] = useState(null); // For detailed assignment
 
     useEffect(() => {
         const fetch = async () => {
@@ -674,39 +676,169 @@ function AdminItemAssignmentPage({ baseurl, darkTheme }) {
         fetch();
     }, [baseurl]);
 
-    const handleAssign = async (donationId) => {
-        if (!selectedOrg[donationId]) return alert("Select Org");
+    // Initialize quantities when dialog opens
+    const handleOpenDetails = (donation) => {
+        const initialQty = {};
+        (donation.itemDetails || []).forEach(item => {
+            initialQty[item.name] = item.quantity;
+        });
+        setSelectedQuantities(p => ({ ...p, [donation._id]: initialQty }));
+        setOpenDetailsDialog(donation);
+    };
+
+    // Update quantity for a specific item
+    const handleQuantityChange = (itemName, newQty) => {
+        if (!openDetailsDialog) return;
+        setSelectedQuantities(p => ({
+            ...p,
+            [openDetailsDialog._id]: {
+                ...(p[openDetailsDialog._id] || {}),
+                [itemName]: Math.max(0, Math.min(newQty, openDetailsDialog.itemDetails.find(i => i.name === itemName)?.quantity || 0))
+            }
+        }));
+    };
+
+    // Calculate remaining items
+    const getRemaining = (donation) => {
+        const selected = selectedQuantities[donation._id] || {};
+        return (donation.itemDetails || []).map(item => ({
+            name: item.name,
+            original: item.quantity,
+            assigned: selected[item.name] || 0,
+            remaining: (item.quantity - (selected[item.name] || 0))
+        }));
+    };
+
+    const handleAssign = async () => {
+        if (!openDetailsDialog) return;
+        if (!selectedOrg[openDetailsDialog._id]) return alert("Select Organization");
+
+        const selected = selectedQuantities[openDetailsDialog._id];
+        const selectedItems = (openDetailsDialog.itemDetails || [])
+            .map(item => ({ name: item.name, quantity: selected[item.name] || 0 }))
+            .filter(item => item.quantity > 0);
+
+        if (selectedItems.length === 0) return alert("Select at least one item");
+
         try {
-            await axios.patch(`${baseurl}/api/donations/admin/assign/${donationId}`, { organizationId: selectedOrg[donationId] }, { headers: { Authorization: `Bearer ${getToken()}` } });
-            setDonations(p => p.filter(d => d._id !== donationId));
-            alert("Assigned Successfully");
-        } catch (e) { alert("Assignment Failed"); }
+            await axios.patch(`${baseurl}/api/donations/admin/assign/${openDetailsDialog._id}`, 
+                { organizationId: selectedOrg[openDetailsDialog._id], selectedItems }, 
+                { headers: { Authorization: `Bearer ${getToken()}` } }
+            );
+            
+            // Update UI - remove fully assigned donations or update partial ones
+            setDonations(p => p.map(d => {
+                if (d._id === openDetailsDialog._id) {
+                    const remaining = getRemaining(openDetailsDialog).filter(r => r.remaining > 0);
+                    if (remaining.length === 0) return null; // Remove if fully assigned
+                    // Update itemDetails with remaining
+                    return { ...d, itemDetails: remaining.map(r => ({ name: r.name, quantity: r.remaining })) };
+                }
+                return d;
+            }).filter(Boolean));
+            
+            setOpenDetailsDialog(null);
+            setSelectedOrg(p => ({ ...p, [openDetailsDialog._id]: "" }));
+            alert("Assigned Successfully!");
+        } catch (e) { 
+            console.error(e);
+            alert("Assignment Failed: " + (e.response?.data?.error || e.message)); 
+        }
     }
 
     return (
-        <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
-            <Table>
-                <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Items</TableCell><TableCell>Address</TableCell><TableCell>Assign To</TableCell><TableCell>Action</TableCell></TableRow></TableHead>
-                <TableBody>
-                    {donations.map((d) => (
-                        <TableRow key={d._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
-                            <TableCell>{(d.itemDetails || []).map(i => `${i.name} x${i.quantity}`).join(', ')}</TableCell>
-                            <TableCell>{d.address}</TableCell>
-                            <TableCell>
-                                <select style={{ background: "#374151", color: "white", padding: "8px", borderRadius: 4, border: '1px solid #4b5563', width: '100%' }} onChange={(e) => setSelectedOrg(p => ({ ...p, [d._id]: e.target.value }))}>
-                                    <option value="">Select Organization</option>
-                                    {organizations.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
-                                </select>
-                            </TableCell>
-                            <TableCell>
-                                <Button size="small" variant="contained" sx={{ bgcolor: darkTheme.primary }} onClick={() => handleAssign(d._id)}>Assign</Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                    {donations.length === 0 && <TableRow><TableCell colSpan={4} align="center" sx={{ color: darkTheme.textSec, py: 4 }}>No unassigned items found.</TableCell></TableRow>}
-                </TableBody>
-            </Table>
-        </TableContainer>
+        <Box>
+            <TableContainer component={Paper} sx={{ bgcolor: darkTheme.card, color: darkTheme.text }}>
+                <Table>
+                    <TableHead><TableRow sx={{ "& th": { color: darkTheme.textSec, borderBottom: "1px solid #374151" } }}><TableCell>Items</TableCell><TableCell>Address</TableCell><TableCell>Donor</TableCell><TableCell>Action</TableCell></TableRow></TableHead>
+                    <TableBody>
+                        {donations.map((d) => (
+                            <TableRow key={d._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
+                                <TableCell>
+                                    <Box>
+                                        {(d.itemDetails || []).map((i, idx) => (
+                                            <Typography key={idx} variant="body2">{i.name} × {i.quantity}</Typography>
+                                        ))}
+                                    </Box>
+                                </TableCell>
+                                <TableCell>{d.address || "N/A"}</TableCell>
+                                <TableCell>{d.donorName || "Anonymous"}</TableCell>
+                                <TableCell>
+                                    <Button size="small" variant="contained" sx={{ bgcolor: darkTheme.primary }} onClick={() => handleOpenDetails(d)}>
+                                        Assign
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {donations.length === 0 && <TableRow><TableCell colSpan={4} align="center" sx={{ color: darkTheme.textSec, py: 4 }}>No unassigned items found.</TableCell></TableRow>}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            {/* ASSIGNMENT DETAILS DIALOG */}
+            <Dialog open={!!openDetailsDialog} onClose={() => setOpenDetailsDialog(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: darkTheme.card, color: darkTheme.text } }}>
+                <DialogTitle>Assign Items to Organization</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 2 }}>
+                        {/* Organization Selection */}
+                        <FormControl fullWidth sx={{ mb: 3 }}>
+                            <InputLabel sx={{ color: darkTheme.textSec }}>Organization</InputLabel>
+                            <Select
+                                value={selectedOrg[openDetailsDialog?._id] || ""}
+                                onChange={(e) => setSelectedOrg(p => ({ ...p, [openDetailsDialog._id]: e.target.value }))}
+                                label="Organization"
+                                sx={{ color: darkTheme.text, '.MuiOutlinedInput-notchedOutline': { borderColor: darkTheme.borderColor } }}
+                            >
+                                <MenuItem value="">Select Organization</MenuItem>
+                                {organizations.map(o => <MenuItem key={o._id} value={o._id}>{o.name}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+
+                        {/* Items with Quantity Selection */}
+                        <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold' }}>Select Quantities to Assign:</Typography>
+                        <Box sx={{ mb: 3, pb: 2, borderBottom: `1px solid ${darkTheme.borderColor}` }}>
+                            {(openDetailsDialog?.itemDetails || []).map((item, idx) => {
+                                const selected = (selectedQuantities[openDetailsDialog?._id] || {})[item.name] || 0;
+                                return (
+                                    <Box key={idx} sx={{ mb: 2, p: 2, bgcolor: darkTheme.bg, borderRadius: 1, border: `1px solid ${darkTheme.borderColor}` }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{item.name}</Typography>
+                                            <Typography variant="caption" sx={{ color: darkTheme.textSec }}>Available: {item.quantity}</Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                            <TextField
+                                                type="number"
+                                                value={selected}
+                                                onChange={(e) => handleQuantityChange(item.name, parseInt(e.target.value) || 0)}
+                                                inputProps={{ min: 0, max: item.quantity }}
+                                                size="small"
+                                                sx={{ width: 100, input: { color: darkTheme.text }, fieldset: { borderColor: darkTheme.borderColor } }}
+                                            />
+                                            <Typography variant="body2">/ {item.quantity}</Typography>
+                                            <Typography variant="caption" sx={{ ml: 'auto', color: darkTheme.primary, fontWeight: 'bold' }}>
+                                                Remaining: {item.quantity - selected}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                );
+                            })}
+                        </Box>
+
+                        {/* Summary */}
+                        <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold' }}>Assignment Summary:</Typography>
+                        {getRemaining(openDetailsDialog || {}).map((item, idx) => (
+                            <Typography key={idx} variant="body2" sx={{ color: darkTheme.textSec, mb: 1 }}>
+                                {item.name}: {item.assigned} assigned → {item.remaining} will remain
+                            </Typography>
+                        ))}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDetailsDialog(null)} sx={{ color: darkTheme.textSec }}>Cancel</Button>
+                    <Button onClick={handleAssign} variant="contained" sx={{ bgcolor: darkTheme.primary }}>Assign Selected</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
     )
 }
 
