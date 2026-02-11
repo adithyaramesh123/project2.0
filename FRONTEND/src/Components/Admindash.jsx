@@ -46,6 +46,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import MessageIcon from "@mui/icons-material/Message";
+import EmailIcon from "@mui/icons-material/Email";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -320,6 +321,7 @@ export default function Admindash() {
         { id: "Faculty", label: "Organizations", icon: <StorefrontIcon /> },
         { id: "Tasks", label: "Assignments", icon: <AssignmentIcon /> },
         { id: "Submissions", label: "Requests", icon: <MessageIcon /> },
+        { id: "Messages", label: "Messages", icon: <EmailIcon /> },
     ];
 
     /* FETCH DATA */
@@ -395,15 +397,15 @@ export default function Admindash() {
 
             {/* 1. Stats */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={4}><StatCard title="Total Users" value={stats.users} icon={<PeopleIcon sx={{ fontSize: 32 }} />} color="#3b82f6" theme={theme} /></Grid>
-                <Grid item xs={12} md={4}><StatCard title="Total Donations (₹)" value={stats.totalAmount.toLocaleString()} icon={<EmojiEventsIcon sx={{ fontSize: 32 }} />} color="#10b981" theme={theme} /></Grid>
-                <Grid item xs={12} md={4}><StatCard title="Total Activities" value={stats.donations} icon={<AssignmentIcon sx={{ fontSize: 32 }} />} color="#ec4899" theme={theme} /></Grid>
+                <Grid size={{ xs: 12, md: 4 }}><StatCard title="Total Users" value={stats.users} icon={<PeopleIcon sx={{ fontSize: 32 }} />} color="#3b82f6" theme={theme} /></Grid>
+                <Grid size={{ xs: 12, md: 4 }}><StatCard title="Total Donations (₹)" value={stats.totalAmount.toLocaleString()} icon={<EmojiEventsIcon sx={{ fontSize: 32 }} />} color="#10b981" theme={theme} /></Grid>
+                <Grid size={{ xs: 12, md: 4 }}><StatCard title="Total Activities" value={stats.donations} icon={<AssignmentIcon sx={{ fontSize: 32 }} />} color="#ec4899" theme={theme} /></Grid>
             </Grid>
 
             {/* 2. Main Content Row (Podium + Charts) */}
             <Grid container spacing={3} sx={{ mb: 4, alignItems: 'stretch' }}>
                 {/* Top Donors */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card sx={{
                         background: `linear-gradient(135deg, ${theme.card} 0%, ${theme.primary}05 100%)`,
                         borderRadius: 4,
@@ -424,7 +426,7 @@ export default function Admindash() {
                 </Grid>
 
                 {/* Pie Chart */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card sx={{
                         background: `linear-gradient(135deg, ${theme.card} 0%, ${theme.secondary}05 100%)`,
                         borderRadius: 4,
@@ -457,7 +459,7 @@ export default function Admindash() {
                 </Grid>
 
                 {/* Bar Chart */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card sx={{
                         background: `linear-gradient(135deg, ${theme.card} 0%, #8b5cf605 100%)`,
                         borderRadius: 4,
@@ -475,7 +477,7 @@ export default function Admindash() {
                                             cursor={{ fill: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', radius: 4 }}
                                             contentStyle={{ backgroundColor: theme.card, border: "1px solid " + theme.borderColor, borderRadius: 12, color: theme.text, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
                                         />
-                                        <Bar dataKey="v" fill="#8b5cf6" radius={[6, 6, 6, 6]} barSize={24}>
+                                        <Bar dataKey="v" fill="#8b5cf6" radius={[12, 12, 12, 12]} barSize={24}>
                                             {/* Optional: Add gradient to bars */}
                                         </Bar>
                                     </BarChart>
@@ -558,6 +560,7 @@ export default function Admindash() {
                     {activeTab === "Faculty" && <AdminOrganizationPage darkTheme={theme} baseurl={baseurl} />}
                     {activeTab === "Tasks" && <AdminItemAssignmentPage darkTheme={theme} baseurl={baseurl} />}
                     {activeTab === "Submissions" && <AdminRequestsPage darkTheme={theme} baseurl={baseurl} />}
+                    {activeTab === "Messages" && <AdminMessagesPage darkTheme={theme} baseurl={baseurl} />}
                 </Box>
             </Box>
         </Box>
@@ -567,6 +570,149 @@ export default function Admindash() {
 /* =================================================================================
    SUB-COMPONENTS (Fully Functional)
 ================================================================================= */
+
+/* --- MESSAGES LIST --- */
+function AdminMessagesPage({ baseurl, darkTheme }) {
+    const [messages, setMessages] = useState([]);
+    const [selectedMessage, setSelectedMessage] = useState(null);
+
+    const fetchMessages = () => {
+        axios.get(`${baseurl}/api/contact`).then(r => setMessages(r.data)).catch(console.error);
+    };
+
+    useEffect(() => { fetchMessages(); }, []);
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Delete this message?")) return;
+        try {
+            await axios.delete(`${baseurl}/api/contact/${id}`);
+            fetchMessages();
+        } catch (e) { console.error(e); }
+    };
+
+    const handleClearAll = async () => {
+        if (!window.confirm("Are you sure you want to delete ALL messages?")) return;
+        try {
+            await axios.delete(`${baseurl}/api/contact`);
+            fetchMessages();
+        } catch (e) { console.error(e); }
+    };
+
+    return (
+        <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ color: darkTheme.text, fontWeight: 'bold' }}>Messages</Typography>
+                {messages.length > 0 && (
+                    <Button variant="outlined" color="error" onClick={handleClearAll} startIcon={<DeleteIcon />}>
+                        Clear All
+                    </Button>
+                )}
+            </Box>
+
+            <Grid container spacing={3}>
+                {messages.map((m) => (
+                    <Grid item xs={12} sm={12} md={4} key={m._id}>
+                        <Card sx={{ bgcolor: darkTheme.card, border: `1px solid ${darkTheme.borderColor}`, borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: darkTheme.text }}>
+                                        {m.firstName} {m.lastName}
+                                    </Typography>
+                                    <Chip
+                                        label={new Date(m.createdAt).toLocaleDateString()}
+                                        size="small"
+                                        sx={{ bgcolor: darkTheme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', color: darkTheme.textSec, fontSize: '0.7rem' }}
+                                    />
+                                </Box>
+                                <Typography variant="body2" sx={{ color: darkTheme.textSec, mb: 2 }}>{m.email}</Typography>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: darkTheme.text,
+                                        mb: 2,
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 3,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    {m.message}
+                                </Typography>
+                            </CardContent>
+                            <Box sx={{ p: 2, pt: 0 }}>
+                                <Button
+                                    fullWidth
+                                    variant="outlined"
+                                    sx={{ borderRadius: 2, borderColor: darkTheme.borderColor, color: darkTheme.primary }}
+                                    onClick={() => setSelectedMessage(m)}
+                                >
+                                    Read Message
+                                </Button>
+                            </Box>
+                        </Card>
+                    </Grid>
+                ))}
+                {messages.length === 0 && (
+                    <Grid item xs={12}>
+                        <Box sx={{ textAlign: 'center', py: 8, color: darkTheme.textSec }}>
+                            <EmailIcon sx={{ fontSize: 48, opacity: 0.2, mb: 2 }} />
+                            <Typography>No messages found.</Typography>
+                        </Box>
+                    </Grid>
+                )}
+            </Grid>
+
+            {/* Read Message Dialog */}
+            <Dialog
+                open={!!selectedMessage}
+                onClose={() => setSelectedMessage(null)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { bgcolor: darkTheme.card, color: darkTheme.text, borderRadius: 3 } }}
+            >
+                {selectedMessage && (
+                    <>
+                        <DialogTitle sx={{ borderBottom: `1px solid ${darkTheme.borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                                <Typography variant="h6">{selectedMessage.firstName} {selectedMessage.lastName}</Typography>
+                                <Typography variant="caption" sx={{ color: darkTheme.textSec }}>{selectedMessage.email}</Typography>
+                            </Box>
+                            <IconButton onClick={() => setSelectedMessage(null)} sx={{ color: darkTheme.textSec }}><CancelIcon /></IconButton>
+                        </DialogTitle>
+                        <DialogContent sx={{ pt: 3 }}>
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.12 }}>
+                                {selectedMessage.message}
+                            </Typography>
+                            {selectedMessage.phone && (
+                                <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${darkTheme.borderColor}` }}>
+                                    <Typography variant="caption" sx={{ color: darkTheme.textSec }}>Phone: {selectedMessage.phone}</Typography>
+                                </Box>
+                            )}
+                        </DialogContent>
+                        <DialogActions sx={{ p: 2, borderTop: `1px solid ${darkTheme.borderColor}` }}>
+                            <Button
+                                component="a"
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selectedMessage.email}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                variant="contained"
+                                sx={{ bgcolor: darkTheme.primary, color: 'white' }}
+                            >
+                                Reply
+                            </Button>
+                            <Button onClick={() => { handleDelete(selectedMessage._id); setSelectedMessage(null); }} color="error">
+                                Delete
+                            </Button>
+                            <Button onClick={() => setSelectedMessage(null)} sx={{ color: darkTheme.text }}>
+                                Close
+                            </Button>
+                        </DialogActions>
+                    </>
+                )}
+            </Dialog>
+        </Box>
+    );
+}
 
 /* --- USERS LIST --- */
 function AdminUsersPage({ baseurl, darkTheme }) {
@@ -721,11 +867,11 @@ function AdminItemAssignmentPage({ baseurl, darkTheme }) {
         if (selectedItems.length === 0) return alert("Select at least one item");
 
         try {
-            await axios.patch(`${baseurl}/api/donations/admin/assign/${openDetailsDialog._id}`, 
-                { organizationId: selectedOrg[openDetailsDialog._id], selectedItems }, 
+            await axios.patch(`${baseurl}/api/donations/admin/assign/${openDetailsDialog._id}`,
+                { organizationId: selectedOrg[openDetailsDialog._id], selectedItems },
                 { headers: { Authorization: `Bearer ${getToken()}` } }
             );
-            
+
             // Update UI - remove fully assigned donations or update partial ones
             setDonations(p => p.map(d => {
                 if (d._id === openDetailsDialog._id) {
@@ -736,13 +882,13 @@ function AdminItemAssignmentPage({ baseurl, darkTheme }) {
                 }
                 return d;
             }).filter(Boolean));
-            
+
             setOpenDetailsDialog(null);
             setSelectedOrg(p => ({ ...p, [openDetailsDialog._id]: "" }));
             alert("Assigned Successfully!");
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
-            alert("Assignment Failed: " + (e.response?.data?.error || e.message)); 
+            alert("Assignment Failed: " + (e.response?.data?.error || e.message));
         }
     }
 

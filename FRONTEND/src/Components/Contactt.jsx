@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Box, Container, Grid, TextField, Button, Typography, Avatar, InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import PersonIcon from '@mui/icons-material/Person';
@@ -9,7 +10,7 @@ import SendIcon from '@mui/icons-material/Send';
 
 // Theme-aware page background
 const BackgroundStyle = (theme) => ({
-  background: theme.palette.mode === 'dark' 
+  background: theme.palette.mode === 'dark'
     ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 40%, #1e1e1e 70%, #121212 100%)'
     : 'linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%)',
   backgroundSize: 'cover',
@@ -46,18 +47,23 @@ export default function Contactt() {
     if (['email', 'message'].includes(name)) validate(name, value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Basic validation
     validate('email', formData.email);
     validate('message', formData.message);
     if (!formData.email || !formData.message) return;
 
-    // Simulate send
-    console.log('Contact message:', formData);
-    setOpen(true);
-    setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
-    setErrors({});
+    try {
+      const baseurl = import.meta.env.VITE_API_BASE_URL || '';
+      await axios.post(`${baseurl}/api/contact`, formData);
+      setOpen(true);
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+      setErrors({});
+    } catch (error) {
+      console.error("Failed to send message", error);
+      alert("Failed to send message. Please try again.");
+    }
   };
 
   return (

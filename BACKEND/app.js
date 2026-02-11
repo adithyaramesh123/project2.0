@@ -26,6 +26,10 @@ app.use("/api/donations", donationRoute);
 const organizationRoute = require('./Route/organizationRoutes');
 app.use('/api/organizations', organizationRoute);
 
+// Contact Route
+const contactRoute = require('./Route/contactRoutes');
+app.use('/api/contact', contactRoute);
+
 app.listen(port, () => {
   console.log(`Server is up and Running ${port}`);
 });

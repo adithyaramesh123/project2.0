@@ -149,6 +149,7 @@ const DonationPage = () => {
   // UI States
   const [openDonate, setOpenDonate] = useState(false);
   const [donateTab, setDonateTab] = useState('Money'); // Control tab from outside if needed
+  const [prefillItem, setPrefillItem] = useState(null);
 
   const muiTheme = useTheme();
   const theme = muiTheme.palette.mode === 'dark' ? DARK_THEME : LIGHT_THEME;
@@ -206,7 +207,7 @@ const DonationPage = () => {
             variant="contained"
             size="large"
             startIcon={<VolunteerActivismIcon />}
-            onClick={() => { setDonateTab('Money'); setOpenDonate(true); }}
+            onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}
             sx={{
               bgcolor: theme.primary,
               color: '#fff',
@@ -259,7 +260,7 @@ const DonationPage = () => {
                   </Typography>
                   <Typography variant="caption" sx={{ color: theme.textSec }}>Items currently requested by organizations</Typography>
                 </Box>
-                <Button size="small" variant="outlined" onClick={() => { setDonateTab('Item'); setOpenDonate(true); }} sx={{ borderColor: theme.borderColor, color: theme.textSec }}>
+                <Button size="small" variant="outlined" onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(null); }} sx={{ borderColor: theme.borderColor, color: theme.textSec }}>
                   View All Items
                 </Button>
               </Box>
@@ -283,7 +284,7 @@ const DonationPage = () => {
                             size="small"
                             variant="contained"
                             sx={{ bgcolor: theme.secondary, fontSize: '0.7rem', textTransform: 'none' }}
-                            onClick={() => { setDonateTab('Item'); setOpenDonate(true); }}
+                            onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(item.name); }}
                           >
                             Donate
                           </Button>
@@ -295,20 +296,20 @@ const DonationPage = () => {
                   <Box sx={{ textAlign: 'center', py: 4, color: theme.textSec }}>
                     <VolunteerActivismIcon sx={{ fontSize: 40, opacity: 0.2, mb: 1 }} />
                     <Typography>No urgent requests at the moment.</Typography>
-                    <Button sx={{ mt: 1 }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); }}>Donate Money Instead</Button>
+                    <Button sx={{ mt: 1 }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}>Donate Money Instead</Button>
                   </Box>
                 )}
 
                 <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${theme.borderColor}` }}>
                   <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold', color: theme.textSec }}>Quick Utilities</Typography>
                   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); }}>
+                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}>
                       Donate ₹500
                     </Button>
-                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); }}>
+                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}>
                       Donate ₹1000
                     </Button>
-                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); }}>
+                    <Button startIcon={<VolunteerActivismIcon />} variant="outlined" sx={{ borderRadius: 2, borderColor: theme.borderColor, color: theme.text }} onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}>
                       Custom Amount
                     </Button>
                   </Box>
@@ -317,18 +318,39 @@ const DonationPage = () => {
             </Card>
           </Grid>
 
-          {/* LEADERBOARD */}
+          {/* HIGH PRIORITIES (DYNAMIC) */}
           <Grid item xs={12} md={4}>
             <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.borderColor}`, height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold', mb: 1 }}>🏆 Top Donors</Typography>
-                {topDonors.length > 0 ? (
-                  <Podium winners={topDonors} themeProp={theme} />
-                ) : (
-                  <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textSec }}>
-                    No Data Available
-                  </Box>
-                )}
+                <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PriorityHighIcon sx={{ color: theme.danger }} /> High Priorities
+                </Typography>
+                <List>
+                  {neededItems.slice(0, 3).map((item, index) => (
+                    <ListItem
+                      key={item._id}
+                      button
+                      onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(item.name); }}
+                      sx={{ bgcolor: `${theme.bg}80`, mb: 1, borderRadius: 2, border: `1px solid ${theme.borderColor}`, '&:hover': { bgcolor: `${theme.primary}10`, borderColor: theme.primary, cursor: 'pointer' } }}
+                    >
+                      <ListItemIcon>
+                        <Avatar sx={{ bgcolor: `${[theme.warning, theme.success, theme.secondary][index % 3]}20`, color: [theme.warning, theme.success, theme.secondary][index % 3] }}>
+                          <VolunteerActivismIcon />
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={<Typography variant="subtitle1" fontWeight="bold" color={theme.text}>{item.name}</Typography>}
+                        secondary={<Typography variant="caption" color={theme.textSec}>Urgent Need</Typography>}
+                      />
+                      <Chip label="Donate" size="small" sx={{ bgcolor: [theme.danger, theme.warning, theme.success][index % 3], color: '#fff', fontWeight: 'bold', cursor: 'pointer' }} />
+                    </ListItem>
+                  ))}
+                  {neededItems.length === 0 && (
+                    <Box sx={{ p: 2, textAlign: 'center', color: theme.textSec }}>
+                      <Typography variant="body2">No urgent priorities at the moment.</Typography>
+                    </Box>
+                  )}
+                </List>
               </CardContent>
             </Card>
           </Grid>
@@ -388,7 +410,7 @@ const DonationPage = () => {
       </Box>
 
       {/* DONATION MODAL */}
-      <DonationModal open={openDonate} onClose={() => setOpenDonate(false)} initialTab={donateTab} theme={theme} baseurl={baseurl} />
+      <DonationModal open={openDonate} onClose={() => { setOpenDonate(false); setPrefillItem(null); }} initialTab={donateTab} theme={theme} baseurl={baseurl} prefillItem={prefillItem} />
 
     </Box>
   );
@@ -397,7 +419,7 @@ const DonationPage = () => {
 /* ------------------------------------------------------------------
    🎁 DONATION MODAL
 ------------------------------------------------------------------ */
-const DonationModal = ({ open, onClose, initialTab, theme, baseurl }) => {
+const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem }) => {
   const [tab, setTab] = useState(initialTab || 'Money');
   const [amount, setAmount] = useState('');
   const [items, setItems] = useState({});
@@ -407,6 +429,15 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl }) => {
 
   // Update tab when prop changes
   useEffect(() => { setTab(initialTab || 'Money'); }, [initialTab, open]);
+
+  // Handle Prefill
+  useEffect(() => {
+    if (open && prefillItem) {
+      setItems({ [prefillItem]: 1 });
+    } else if (!open) {
+      setItems({}); // Reset on close
+    }
+  }, [open, prefillItem]);
 
   // Fetch Items
   useEffect(() => {
@@ -517,6 +548,7 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl }) => {
                   type="number"
                   placeholder="0"
                   size="small"
+                  value={items[item.name] || ''}
                   sx={{ width: 80, input: { color: theme.text }, fieldset: { borderColor: theme.borderColor } }}
                   onChange={(e) => setItems({ ...items, [item.name]: e.target.value })}
                 />
