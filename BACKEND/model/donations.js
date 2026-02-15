@@ -52,10 +52,15 @@ const donationSchema = new mongoose.Schema({
   // Optional notes + address
   notes: { type: String },
   address: { type: String },
+  location: {
+    type: { type: String },
+    coordinates: { type: [Number], index: '2dsphere' } // [longitude, latitude]
+  },
 
-  status: { type: String, default: 'Pending' },
-  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
   assignedRequestId: { type: mongoose.Schema.Types.ObjectId, ref: 'OrganizationRequest', default: null },
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+  pickupCode: { type: String }, // Random 4-6 digit code for verification
+  status: { type: String, default: 'Pending' }, // Pending, Assigned, OutForPickup, Completed, Cancelled
 
   createdAt: { type: Date, default: Date.now },
 });

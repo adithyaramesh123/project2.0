@@ -611,7 +611,7 @@ function AdminMessagesPage({ baseurl, darkTheme }) {
 
             <Grid container spacing={3}>
                 {messages.map((m) => (
-                    <Grid item xs={12} sm={12} md={4} key={m._id}>
+                    <Grid size={{ xs: 12, sm: 12, md: 4 }} key={m._id}>
                         <Card sx={{ bgcolor: darkTheme.card, border: `1px solid ${darkTheme.borderColor}`, borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
                             <CardContent sx={{ flex: 1 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -653,7 +653,7 @@ function AdminMessagesPage({ baseurl, darkTheme }) {
                     </Grid>
                 ))}
                 {messages.length === 0 && (
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Box sx={{ textAlign: 'center', py: 8, color: darkTheme.textSec }}>
                             <EmailIcon sx={{ fontSize: 48, opacity: 0.2, mb: 2 }} />
                             <Typography>No messages found.</Typography>
@@ -741,7 +741,7 @@ function AdminUsersPage({ baseurl, darkTheme }) {
 function AdminOrganizationPage({ baseurl, darkTheme }) {
     const [orgs, setOrgs] = useState([]);
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ name: '', contactEmail: '', location: '', password: '' });
+    const [form, setForm] = useState({ name: '', contactEmail: '', address: '', password: '' });
 
     const fetchOrgs = () => { axios.get(`${baseurl}/api/admin/organizations`, { headers: { Authorization: `Bearer ${getToken()}` } }).then(r => setOrgs(r.data)).catch(console.error); }
     useEffect(() => { fetchOrgs(); }, []);
@@ -770,7 +770,7 @@ function AdminOrganizationPage({ baseurl, darkTheme }) {
                     <TableBody>
                         {orgs.map((o) => (
                             <TableRow key={o._id} sx={{ "& td": { color: darkTheme.text, borderBottom: "1px solid #374151" } }}>
-                                <TableCell>{o.name}</TableCell><TableCell>{o.contactEmail}</TableCell><TableCell>{o.location}</TableCell>
+                                <TableCell>{o.name}</TableCell><TableCell>{o.contactEmail}</TableCell><TableCell>{o.address || (o.location?.coordinates ? `[${o.location.coordinates[1]}, ${o.location.coordinates[0]}]` : 'N/A')}</TableCell>
                                 <TableCell><Chip label={o.status || 'Unknown'} color={o.status === 'Active' ? 'success' : 'default'} size="small" /></TableCell>
                                 <TableCell>
                                     <IconButton size="small" sx={{ color: o.status === 'Active' ? darkTheme.success : darkTheme.textSec }} onClick={() => toggleStatus(o._id, o.status)}>
@@ -788,7 +788,7 @@ function AdminOrganizationPage({ baseurl, darkTheme }) {
                 <DialogContent>
                     <TextField autoFocus margin="dense" label="Name" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                     <TextField margin="dense" label="Email" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
-                    <TextField margin="dense" label="Location" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                    <TextField margin="dense" label="Address" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, address: e.target.value })} />
                     <TextField margin="dense" label="Password" type="password" fullWidth variant="outlined" sx={{ mb: 2, input: { color: 'white' }, label: { color: 'gray' } }} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                 </DialogContent>
                 <DialogActions>

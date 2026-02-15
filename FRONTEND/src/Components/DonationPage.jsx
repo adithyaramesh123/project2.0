@@ -17,6 +17,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  ListItemButton,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
@@ -136,6 +137,11 @@ const StatCard = ({ title, value, icon, color, subtitle, themeProp }) => {
 /* ------------------------------------------------------------------
    🧩 MAIN DASHBOARD COMPONENT
 ------------------------------------------------------------------ */
+import LocationPicker from './LocationPicker';
+
+/* ------------------------------------------------------------------
+   🧩 MAIN DASHBOARD COMPONENT
+------------------------------------------------------------------ */
 const DonationPage = () => {
   const baseurl = import.meta.env.VITE_API_BASE_URL || '';
   const userId = sessionStorage.getItem('userId');
@@ -145,6 +151,9 @@ const DonationPage = () => {
   const [topDonors, setTopDonors] = useState([]);
   const [stats, setStats] = useState({ totalMoney: 0, totalItems: 0 });
   const [neededItems, setNeededItems] = useState([]);
+  const [nearbyRequests, setNearbyRequests] = useState([]);
+  const [mapOrgs, setMapOrgs] = useState([]); // Orgs for map display
+  const [userLocation, setUserLocation] = useState(null);
 
   // UI States
   const [openDonate, setOpenDonate] = useState(false);
@@ -175,6 +184,23 @@ const DonationPage = () => {
         // 3. Urgent Needs (Utilities)
         const itemsRes = await axios.get(`${baseurl}/api/donations/items`);
         setNeededItems(itemsRes.data || []);
+
+        // 4. Map Data
+        const mapRes = await axios.get(`${baseurl}/api/organizations/map-data`);
+        setMapOrgs(mapRes.data || []);
+
+        // 5. User Location & Nearby Requests
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+
+            try {
+              const nearbyRes = await axios.get(`${baseurl}/api/organizations/requests/nearby?lat=${latitude}&lng=${longitude}`);
+              setNearbyRequests(nearbyRes.data || []);
+            } catch (e) { console.error("Nearby req error", e); }
+          });
+        }
 
       } catch (err) {
         console.error("Dashboard data load error", err);
@@ -228,6 +254,43 @@ const DonationPage = () => {
       <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, mt: 4 }}>
         <Grid container spacing={3}>
 
+          {/* NEARBY REQUESTS SECTION (NEW) */}
+          {nearbyRequests.length > 0 && (
+            <Grid item xs={12}>
+              <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.primary}50`, p: 2 }}>
+                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <VolunteerActivismIcon sx={{ color: theme.primary }} />
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.text }}>Nearby Organization Requests</Typography>
+                </Box>
+                <Grid container spacing={2}>
+                  {nearbyRequests.map(req => (
+                    <Grid item xs={12} md={4} key={req._id}>
+                      <Box sx={{ p: 2, borderRadius: 2, bgcolor: theme.bg, border: `1px solid ${theme.borderColor}` }}>
+                        <Typography variant="subtitle1" fontWeight="bold">{req.organizationId?.name}</Typography>
+                        <Typography variant="caption" color={theme.textSec}>{req.organizationId?.address}</Typography>
+                        <Box sx={{ my: 1 }}>
+                          {req.items.map((i, idx) => (
+                            <Chip key={idx} label={`${i.name} (x${i.quantity})`} size="small" sx={{ mr: 0.5, mb: 0.5, bgcolor: theme.primary + '20', color: theme.primary }} />
+                          ))}
+                        </Box>
+                        <Button fullWidth variant="contained" size="small"
+                          onClick={() => {
+                            setDonateTab('Item');
+                            setOpenDonate(true);
+                            // Pre-fill logic could be more complex, simplification for now
+                            setPrefillItem(null);
+                          }}
+                          sx={{ bgcolor: theme.secondary }}>
+                          Direct Donate
+                        </Button>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Card>
+            </Grid>
+          )}
+
           {/* STATS ROW */}
           <Grid item xs={12} md={6}>
             <StatCard
@@ -239,7 +302,7 @@ const DonationPage = () => {
               subtitle="Lifetime Money Distributed"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <StatCard
               themeProp={theme}
               title="Donations Made"
@@ -319,7 +382,7 @@ const DonationPage = () => {
           </Grid>
 
           {/* HIGH PRIORITIES (DYNAMIC) */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.borderColor}`, height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -329,20 +392,24 @@ const DonationPage = () => {
                   {neededItems.slice(0, 3).map((item, index) => (
                     <ListItem
                       key={item._id}
-                      button
-                      onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(item.name); }}
-                      sx={{ bgcolor: `${theme.bg}80`, mb: 1, borderRadius: 2, border: `1px solid ${theme.borderColor}`, '&:hover': { bgcolor: `${theme.primary}10`, borderColor: theme.primary, cursor: 'pointer' } }}
+                      disablePadding
+                      sx={{ mb: 1, borderRadius: 2, border: `1px solid ${theme.borderColor}`, overflow: 'hidden' }}
                     >
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: `${[theme.warning, theme.success, theme.secondary][index % 3]}20`, color: [theme.warning, theme.success, theme.secondary][index % 3] }}>
-                          <VolunteerActivismIcon />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={<Typography variant="subtitle1" fontWeight="bold" color={theme.text}>{item.name}</Typography>}
-                        secondary={<Typography variant="caption" color={theme.textSec}>Urgent Need</Typography>}
-                      />
-                      <Chip label="Donate" size="small" sx={{ bgcolor: [theme.danger, theme.warning, theme.success][index % 3], color: '#fff', fontWeight: 'bold', cursor: 'pointer' }} />
+                      <ListItemButton
+                        onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(item.name); }}
+                        sx={{ bgcolor: `${theme.bg}80`, '&:hover': { bgcolor: `${theme.primary}10`, borderColor: theme.primary } }}
+                      >
+                        <ListItemIcon>
+                          <Avatar sx={{ bgcolor: `${[theme.warning, theme.success, theme.secondary][index % 3]}20`, color: [theme.warning, theme.success, theme.secondary][index % 3] }}>
+                            <VolunteerActivismIcon />
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={<Typography variant="subtitle1" fontWeight="bold" color={theme.text}>{item.name}</Typography>}
+                          secondary={<Typography variant="caption" color={theme.textSec}>Urgent Need</Typography>}
+                        />
+                        <Chip label="Donate" size="small" sx={{ bgcolor: [theme.danger, theme.warning, theme.success][index % 3], color: '#fff', fontWeight: 'bold', cursor: 'pointer' }} />
+                      </ListItemButton>
                     </ListItem>
                   ))}
                   {neededItems.length === 0 && (
@@ -356,7 +423,7 @@ const DonationPage = () => {
           </Grid>
 
           {/* RECENT ACTIVITY */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.borderColor}` }}>
               <Box sx={{ p: 3, borderBottom: `1px solid ${theme.borderColor}` }}>
                 <Typography variant="h6" sx={{ color: theme.text, fontWeight: 'bold' }}>Your Recent Activity</Typography>
@@ -382,9 +449,26 @@ const DonationPage = () => {
                             </Typography>
                           }
                           secondary={
-                            <Typography variant="caption" sx={{ color: theme.textSec }}>
-                              {new Date(d.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </Typography>
+                            <Box>
+                              <Typography variant="caption" sx={{ color: theme.textSec, display: 'block' }}>
+                                {new Date(d.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </Typography>
+                              {d.type === 'Item' && d.status !== 'Completed' && d.status !== 'Cancelled' && (
+                                <Box sx={{ mt: 0.5 }}>
+                                  <Chip
+                                    label={d.status}
+                                    size="small"
+                                    color={d.status === 'OutForPickup' ? 'warning' : d.status === 'Assigned' ? 'info' : 'default'}
+                                    sx={{ mr: 1, height: 20, fontSize: '0.65rem' }}
+                                  />
+                                  {d.pickupCode && (
+                                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: theme.primary, border: `1px dashed ${theme.primary}`, px: 1, py: 0.2, borderRadius: 1 }}>
+                                      Code: {d.pickupCode}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              )}
+                            </Box>
                           }
                         />
                         <Chip
@@ -410,7 +494,15 @@ const DonationPage = () => {
       </Box>
 
       {/* DONATION MODAL */}
-      <DonationModal open={openDonate} onClose={() => { setOpenDonate(false); setPrefillItem(null); }} initialTab={donateTab} theme={theme} baseurl={baseurl} prefillItem={prefillItem} />
+      <DonationModal
+        open={openDonate}
+        onClose={() => { setOpenDonate(false); setPrefillItem(null); }}
+        initialTab={donateTab}
+        theme={theme}
+        baseurl={baseurl}
+        prefillItem={prefillItem}
+        mapOrgs={mapOrgs} // Pass map data
+      />
 
     </Box>
   );
@@ -419,13 +511,14 @@ const DonationPage = () => {
 /* ------------------------------------------------------------------
    🎁 DONATION MODAL
 ------------------------------------------------------------------ */
-const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem }) => {
+const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem, mapOrgs }) => {
   const [tab, setTab] = useState(initialTab || 'Money');
   const [amount, setAmount] = useState('');
   const [items, setItems] = useState({});
   const [availableItems, setAvailableItems] = useState([]);
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState(null); // { lat, lng }
 
   // Update tab when prop changes
   useEffect(() => { setTab(initialTab || 'Money'); }, [initialTab, open]);
@@ -436,6 +529,9 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem 
       setItems({ [prefillItem]: 1 });
     } else if (!open) {
       setItems({}); // Reset on close
+      setSelectedLocation(null);
+      setAddress('');
+      setNotes('');
     }
   }, [open, prefillItem]);
 
@@ -474,9 +570,14 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem 
       if (!address) return alert("Please enter pickup address");
 
       await axios.post(`${baseurl}/api/donations/item`, {
-        userId, items: donationItems, notes, address
+        userId,
+        items: donationItems,
+        notes,
+        address,
+        latitude: selectedLocation?.lat,
+        longitude: selectedLocation?.lng
       });
-      alert("Items Recorded! We will contact you.");
+      alert("Items Recorded! We will notify nearby organizations.");
       onClose();
       window.location.reload();
     } catch (e) { alert("Failed"); }
@@ -486,7 +587,7 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem 
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="lg" // Increased size for map
       fullWidth
       PaperProps={{ sx: { bgcolor: theme.card, color: theme.text, borderRadius: 3, border: `1px solid ${theme.borderColor}` } }}
     >
@@ -526,35 +627,54 @@ const DonationModal = ({ open, onClose, initialTab, theme, baseurl, prefillItem 
             <Button fullWidth variant="contained" size="large" onClick={handleMoneyDonate} sx={{ bgcolor: theme.success, py: 1.5, fontSize: '1.1rem' }}>Donate ₹{amount || '0'}</Button>
           </Box>
         ) : (
-          <Box sx={{ maxHeight: 400, overflowY: 'auto', pr: 1 }}>
-            <TextField
-              fullWidth label="Pickup Address" variant="outlined"
-              value={address} onChange={e => setAddress(e.target.value)}
-              sx={{ mb: 2, input: { color: theme.text }, label: { color: theme.textSec }, fieldset: { borderColor: theme.borderColor } }}
-            />
-            <TextField
-              fullWidth label="Notes (Optional)" variant="outlined" multiline rows={2}
-              value={notes} onChange={e => setNotes(e.target.value)}
-              sx={{ mb: 2, textarea: { color: theme.text }, label: { color: theme.textSec }, fieldset: { borderColor: theme.borderColor } }}
-            />
-            <Typography variant="subtitle2" sx={{ mb: 1, color: theme.text }}>Select Items:</Typography>
-            {availableItems.map(item => (
-              <Box key={item._id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, p: 2, border: `1px solid ${theme.borderColor}`, borderRadius: 2 }}>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight="bold">{item.name}</Typography>
-                  <Typography variant="caption" color={theme.textSec}>{item.description}</Typography>
-                </Box>
+          <Grid container spacing={3}>
+            {/* LEFT: FORM */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ maxHeight: 500, overflowY: 'auto', pr: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: theme.text }}>Select Items:</Typography>
+                {availableItems.map(item => (
+                  <Box key={item._id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, p: 2, border: `1px solid ${theme.borderColor}`, borderRadius: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight="bold">{item.name}</Typography>
+                      <Typography variant="caption" color={theme.textSec}>{item.description}</Typography>
+                    </Box>
+                    <TextField
+                      type="number"
+                      placeholder="0"
+                      size="small"
+                      value={items[item.name] || ''}
+                      sx={{ width: 80, input: { color: theme.text }, fieldset: { borderColor: theme.borderColor } }}
+                      onChange={(e) => setItems({ ...items, [item.name]: e.target.value })}
+                    />
+                  </Box>
+                ))}
                 <TextField
-                  type="number"
-                  placeholder="0"
-                  size="small"
-                  value={items[item.name] || ''}
-                  sx={{ width: 80, input: { color: theme.text }, fieldset: { borderColor: theme.borderColor } }}
-                  onChange={(e) => setItems({ ...items, [item.name]: e.target.value })}
+                  fullWidth label="Notes (Optional)" variant="outlined" multiline rows={2}
+                  value={notes} onChange={e => setNotes(e.target.value)}
+                  sx={{ mt: 2, textarea: { color: theme.text }, label: { color: theme.textSec }, fieldset: { borderColor: theme.borderColor } }}
                 />
               </Box>
-            ))}
-          </Box>
+            </Grid>
+            {/* RIGHT: MAP & ADDRESS */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: theme.text }}>Pickup Location:</Typography>
+              <LocationPicker
+                organizations={mapOrgs}
+                onLocationSelect={(loc) => {
+                  setSelectedLocation(loc);
+                  // Optional: Reverse geocode here to set Address string
+                }}
+              />
+              <Typography variant="caption" sx={{ color: theme.textSec, display: 'block', mt: 1 }}>
+                Click on the map to set location. Green circles show organization coverage.
+              </Typography>
+              <TextField
+                fullWidth label="Pickup Address / Landmark" variant="outlined"
+                value={address} onChange={e => setAddress(e.target.value)}
+                sx={{ mt: 2, input: { color: theme.text }, label: { color: theme.textSec }, fieldset: { borderColor: theme.borderColor } }}
+              />
+            </Grid>
+          </Grid>
         )}
       </DialogContent>
       {tab === 'Item' && (

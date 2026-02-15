@@ -45,6 +45,7 @@ const Organization = require('../model/Organization');
 const OrganizationRequest = require('../model/OrganizationRequest');
 const NeededItem = require("../model/neededItems");
 const User = require("../model/User");
+const Notification = require("../model/Notification");
 
 /* ============================================================
    1️⃣ MONEY DONATION (Razorpay)
@@ -128,9 +129,10 @@ router.post('/money/verify', async (req, res) => {
 /* ============================================================
    2️⃣ MULTI-ITEM DONATION
 ============================================================ */
-router.post("/item", async (req, res) => {
+// POST /item - Donate Item
+router.post('/item', async (req, res) => {
   try {
-    const { userId, items, notes, address } = req.body;
+    const { userId, items, notes, address, latitude, longitude } = req.body;
 
     if (!address)
       return res.status(400).json({ error: "Pickup address required" });
@@ -138,22 +140,77 @@ router.post("/item", async (req, res) => {
     if (!items || !Array.isArray(items) || items.length === 0)
       return res.status(400).json({ error: "At least one item required" });
 
-    const donation = new Donation({
+    // Create Donation
+    const donationData = {
       userId,
-      type: "Item",
+      type: 'Item',
       itemDetails: items,
       notes,
       address,
-    });
+      status: 'Pending'
+    };
 
-    await donation.save();
+    if (latitude && longitude) {
+      donationData.location = { type: 'Point', coordinates: [longitude, latitude] };
+    }
 
-    res.json({ success: true, donationId: donation._id });
-  } catch (error) {
-    console.error("📦 Item Donation Error:", error.message);
-    res.status(500).json({ error: error.message });
+    const newDonation = new Donation(donationData);
+    await newDonation.save();
+
+    // --- NOTIFICATION LOGIC ---
+    if (latitude && longitude) {
+      // Find organizations that cover this location
+      // Logic: distance(org, donation) <= org.coverageRadius
+      // We can iterate active organizations like we did in nearby requests
+
+      const organizations = await Organization.find({ status: 'Active' });
+
+      const notifiedOrgs = [];
+
+      for (const org of organizations) {
+        if (org.location && org.location.coordinates && org.location.coordinates.length === 2) {
+          const [orgLng, orgLat] = org.location.coordinates;
+          const distance = getDistanceFromLatLonInKm(latitude, longitude, orgLat, orgLng) * 1000; // meters
+
+          if (distance <= (org.coverageRadius || 5000)) {
+            notifiedOrgs.push(org._id);
+
+            // Create Notification
+            await Notification.create({
+              organizationId: org._id,
+              message: `New Donation Alert! A user in your area is donating: ${items.map(i => i.name).join(', ')}.`,
+              type: 'DonationAlert',
+              relatedDonationId: newDonation._id,
+              donorName: "User", // ideally fetch user name
+              pickupAddress: address,
+              location: { type: 'Point', coordinates: [longitude, latitude] }
+            });
+          }
+        }
+      }
+      console.log(`Notified ${notifiedOrgs.length} organizations.`);
+    }
+
+    res.status(201).json({ success: true, donation: newDonation });
+  } catch (err) {
+    console.error("Item donation error", err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Helper (Duplicated to avoid dependency issues for now, ideally in utils)
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var dLat = deg2rad(lat2 - lat1);
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+function deg2rad(deg) { return deg * (Math.PI / 180); }
 
 /* ============================================================
    3️⃣ GET NEEDED ITEMS FOR DONATION PAGE
@@ -391,9 +448,9 @@ router.get("/admin/recent-donations", async (_req, res) => {
 router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
   try {
     // Include donations that are approved or partially assigned AND have remaining items (itemDetails not empty)
-    const unassigned = await Donation.find({ 
-      type: 'Item', 
-      status: { $in: ['Approved', 'PartiallyAssigned'] }, 
+    const unassigned = await Donation.find({
+      type: 'Item',
+      status: { $in: ['Approved', 'PartiallyAssigned'] },
       organization: null,
       $expr: { $gt: [{ $size: { $ifNull: ['$itemDetails', []] } }, 0] } // Only if itemDetails has items
     }).sort({ createdAt: -1 });
@@ -409,9 +466,9 @@ router.get('/admin/unassigned-items', adminAuth, async (_req, res) => {
 router.get('/admin/unassigned-item-lines', adminAuth, async (_req, res) => {
   try {
     // Include donations that are Approved or PartiallyAssigned so remaining items are visible
-    const donations = await Donation.find({ 
-      type: 'Item', 
-      status: { $in: ['Approved', 'PartiallyAssigned'] }, 
+    const donations = await Donation.find({
+      type: 'Item',
+      status: { $in: ['Approved', 'PartiallyAssigned'] },
       organization: null,
       $expr: { $gt: [{ $size: { $ifNull: ['$itemDetails', []] } }, 0] } // Only if itemDetails has items
     }).sort({ createdAt: -1 });
@@ -564,6 +621,147 @@ router.patch('/requests/:id/status', async (req, res) => {
   }
 });
 
+/* ------------------------------------------------------------
+   ORG PICKUP FLOW ROUTES
+------------------------------------------------------------ */
+
+// POST /api/donations/:id/accept - General Donation Claim (Not via Request)
+router.post('/:id/accept', async (req, res) => {
+  try {
+    const { organizationId } = req.body;
+    console.log(`[ACCEPT] Request for Donation: ${req.params.id} by Org: ${organizationId}`);
+
+    const donation = await Donation.findById(req.params.id);
+
+    if (!donation) {
+      console.error(`[ACCEPT] Donation not found: ${req.params.id}`);
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+
+    console.log(`[ACCEPT] Current Status: ${donation.status}, Org: ${donation.organization}`);
+
+    // If already assigned to THIS organization, treating as success (retry)
+    if (donation.status === 'Assigned' && String(donation.organization) === String(organizationId)) {
+      console.log(`[ACCEPT] Already assigned to this org. Returning success.`);
+      return res.json({ success: true, donation });
+    }
+
+    // Explicitly check for Pending or 'null/undefined' to be safe
+    if (donation.status && donation.status !== 'Pending') {
+      console.warn(`[ACCEPT] Failed. Status is ${donation.status}`);
+      return res.status(400).json({ error: `Donation already assigned or completed (Status: ${donation.status})` });
+    }
+
+    donation.status = 'Assigned';
+    donation.organization = organizationId;
+    donation.pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+    await donation.save();
+    console.log(`[ACCEPT] Success. Pickup Code: ${donation.pickupCode}`);
+
+    res.json({ success: true, donation });
+  } catch (err) {
+    console.error('[ACCEPT] Server Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/donations/:id/out-for-pickup
+router.post('/:id/out-for-pickup', async (req, res) => {
+  try {
+    const { organizationId } = req.body;
+    const donation = await Donation.findById(req.params.id);
+
+    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    // Check organization field OR assignedRequestId related org
+    // For simplicity, strict check on organization field if set
+    if (donation.organization && String(donation.organization) !== String(organizationId)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    donation.status = 'OutForPickup';
+    await donation.save();
+
+    res.json({ success: true, donation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/donations/:id/verify
+router.post('/:id/verify', async (req, res) => {
+  try {
+    const { organizationId, code } = req.body;
+    const donation = await Donation.findById(req.params.id);
+
+    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    if (donation.organization && String(donation.organization) !== String(organizationId)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (donation.pickupCode !== code) {
+      return res.status(400).json({ error: 'Invalid Pickup Code' });
+    }
+
+    donation.status = 'Completed';
+    await donation.save();
+
+    res.json({ success: true, donation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/donations/org/:orgId/assigned - Get all assigned donations for an org
+router.get('/org/:orgId/assigned', async (req, res) => {
+  try {
+    const { orgId } = req.params;
+
+    // 1. Get Donations linked to OrganizationRequests
+    const requests = await OrganizationRequest.find({
+      organizationId: orgId,
+      assignedDonationId: { $ne: null }
+    }).select('assignedDonationId');
+
+    const requestDonationIds = requests.map(r => r.assignedDonationId);
+
+    // 2. Find Donations (Directly assigned OR Linked via Request)
+
+    const donations = await Donation.find({
+      $or: [
+        { organization: orgId },
+        { _id: { $in: requestDonationIds } }
+      ],
+      status: { $in: ['Assigned', 'OutForPickup', 'Completed'] }
+    }).sort({ createdAt: -1 }).lean();
+
+
+    // Manual population of userId (since schema has it as String)
+    const userIds = [...new Set(donations.map(d => d.userId).filter(id => id && mongoose.Types.ObjectId.isValid(id)))];
+
+    if (userIds.length > 0) {
+      const users = await User.find({ _id: { $in: userIds } }).select('ename');
+      const userMap = {};
+      users.forEach(u => userMap[u._id.toString()] = u);
+
+      donations.forEach(d => {
+        if (d.userId && userMap[d.userId]) {
+          d.userId = userMap[d.userId];
+        } else if (d.userId && !mongoose.Types.ObjectId.isValid(d.userId)) {
+          // Keep as string if it's a test user or invalid ID
+          d.donorName = d.userId;
+        }
+      });
+    }
+
+    res.json(donations);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 /* ============================================================
    1️⃣3️⃣ ADMIN — ASSIGN ITEM DONATION TO ORGANIZATION
    Sets the donation.organization and updates status to 'Assigned'
@@ -608,6 +806,7 @@ router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
       notes: donation.notes,
       status: 'Assigned',
       organization: organizationId,
+      pickupCode: Math.floor(1000 + Math.random() * 9000).toString(),
     });
     await assignedDonation.save();
 
@@ -624,10 +823,10 @@ router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
     await donation.save();
 
     // Try to link to an existing organization request
-    let matchingRequest = await OrganizationRequest.findOne({ 
-      organizationId, 
-      assignedDonationId: null, 
-      status: { $in: ['Pending', 'Approved'] } 
+    let matchingRequest = await OrganizationRequest.findOne({
+      organizationId,
+      assignedDonationId: null,
+      status: { $in: ['Pending', 'Approved'] }
     });
 
     if (matchingRequest) {
@@ -639,23 +838,23 @@ router.patch('/admin/assign/:id', adminAuth, async (req, res) => {
     } else {
       // Create a new OrganizationRequest for this delivery
       const items = itemsToAssign.map(it => ({ name: it.name, quantity: it.quantity }));
-      const newReq = await OrganizationRequest.create({ 
-        organizationId, 
-        items, 
-        status: 'Assigned', 
-        assignedDonationId: assignedDonation._id 
+      const newReq = await OrganizationRequest.create({
+        organizationId,
+        items,
+        status: 'Assigned',
+        assignedDonationId: assignedDonation._id
       });
       assignedDonation.assignedRequestId = newReq._id;
       await assignedDonation.save();
       matchingRequest = newReq;
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       assignedDonation: assignedDonation,
       originalDonation: donation,
       remainingItems: remaining,
-      request: matchingRequest 
+      request: matchingRequest
     });
   } catch (err) {
     console.error('Assign donation error', err);
