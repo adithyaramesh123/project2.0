@@ -471,7 +471,7 @@ const Organization = () => {
                             </Typography>
 
                             <Grid container spacing={2} sx={{ mb: 2 }}>
-                                <Grid item xs={12} sm={6}>
+                                <Grid size={{ xs: 12, sm: 6 }}>
                                     <TextField
                                         label="Coverage Radius (meters)"
                                         type="number"
@@ -485,7 +485,7 @@ const Organization = () => {
                                         }}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={6}>
+                                <Grid size={{ xs: 12, sm: 6 }}>
                                     <TextField
                                         label="Address Label"
                                         fullWidth

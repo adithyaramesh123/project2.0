@@ -18,10 +18,12 @@ import {
   ListItemText,
   ListItemIcon,
   ListItemButton,
+  Container,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { Heart } from "lucide-react";
 
 // Icons
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism'; // Donation
@@ -152,56 +154,45 @@ const DonationPage = () => {
   const [stats, setStats] = useState({ totalMoney: 0, totalItems: 0 });
   const [neededItems, setNeededItems] = useState([]);
   const [nearbyRequests, setNearbyRequests] = useState([]);
-  const [mapOrgs, setMapOrgs] = useState([]); // Orgs for map display
+  const [mapOrgs, setMapOrgs] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
 
   // UI States
   const [openDonate, setOpenDonate] = useState(false);
-  const [donateTab, setDonateTab] = useState('Money'); // Control tab from outside if needed
+  const [donateTab, setDonateTab] = useState('Money');
   const [prefillItem, setPrefillItem] = useState(null);
 
   const muiTheme = useTheme();
-  const theme = muiTheme.palette.mode === 'dark' ? DARK_THEME : LIGHT_THEME;
+  const isDarkMode = muiTheme.palette.mode === 'dark';
+  const theme = isDarkMode ? DARK_THEME : LIGHT_THEME;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. History & Stats
         if (userId) {
           const histRes = await axios.get(`${baseurl}/api/donations/history/${userId}`);
           const hist = histRes.data || [];
           setHistory(hist);
-
           const money = hist.filter(d => d.type === 'Money').reduce((sum, d) => sum + (d.amount || 0), 0);
           const items = hist.filter(d => d.type === 'Item').reduce((sum, d) => sum + (d.itemDetails?.length || 0), 0);
           setStats({ totalMoney: money, totalItems: items });
         }
-
-        // 2. Leaderboard
         const lbRes = await axios.get(`${baseurl}/api/donations/admin/stats`);
         setTopDonors(lbRes.data.topDonors || []);
-
-        // 3. Urgent Needs (Utilities)
         const itemsRes = await axios.get(`${baseurl}/api/donations/items`);
         setNeededItems(itemsRes.data || []);
-
-        // 4. Map Data
         const mapRes = await axios.get(`${baseurl}/api/organizations/map-data`);
         setMapOrgs(mapRes.data || []);
-
-        // 5. User Location & Nearby Requests
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(async (pos) => {
             const { latitude, longitude } = pos.coords;
             setUserLocation({ lat: latitude, lng: longitude });
-
             try {
               const nearbyRes = await axios.get(`${baseurl}/api/organizations/requests/nearby?lat=${latitude}&lng=${longitude}`);
               setNearbyRequests(nearbyRes.data || []);
             } catch (e) { console.error("Nearby req error", e); }
           });
         }
-
       } catch (err) {
         console.error("Dashboard data load error", err);
       }
@@ -212,42 +203,101 @@ const DonationPage = () => {
   return (
     <Box sx={{ bgcolor: theme.bg, minHeight: '100vh', color: theme.text, pb: 8 }}>
 
-      {/* HEADER */}
+      {/* PREMIUM HERO SECTION */}
       <Box sx={{
-        pt: { xs: 4, md: 6 }, pb: { xs: 4, md: 6 }, px: { xs: 2, md: 6 },
-        background: `linear-gradient(180deg, ${theme.card} 0%, ${theme.bg} 100%)`,
+        position: 'relative',
+        pt: { xs: 12, md: 16 },
+        pb: { xs: 8, md: 12 },
+        overflow: 'hidden',
+        background: isDarkMode
+          ? `linear-gradient(rgba(2,9,5,0.85), rgba(2,9,5,0.95)), url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')`
+          : `linear-gradient(rgba(240,253,244,0.8), rgba(240,253,244,0.9)), url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         borderBottom: `1px solid ${theme.borderColor}`
       }}>
-        <Box sx={{ maxWidth: 1200, mx: 'auto', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', justifyContent: 'space-between', gap: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Avatar sx={{ width: 80, height: 80, bgcolor: theme.primary, fontSize: '2rem', fontWeight: 'bold' }}>
-              {userName.charAt(0)}
-            </Avatar>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: theme.text }}>Welcome back, {userName}!</Typography>
-              <Typography variant="body1" sx={{ color: theme.textSec, mt: 0.5 }}>Ready to make a difference today?</Typography>
-            </Box>
-          </Box>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid size={{ xs: 12, md: 7 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <Chip
+                  label="Your Impact Dashboard"
+                  sx={{
+                    bgcolor: theme.primary + '20',
+                    color: theme.primary,
+                    fontWeight: 700,
+                    mb: 2,
+                    border: `1px solid ${theme.primary}40`
+                  }}
+                />
+                <Typography variant="h2" sx={{ fontWeight: 900, color: theme.text, mb: 2, letterSpacing: '-2px' }}>
+                  Welcome, <span style={{ color: theme.primary }}>{userName}</span>
+                </Typography>
+                <Typography variant="h6" sx={{ color: theme.textSec, mb: 4, maxWidth: '600px', lineHeight: 1.6 }}>
+                  "We make a living by what we get, but we make a life by what we give." Every contribution you make creates a ripple of hope across the globe.
+                </Typography>
 
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<VolunteerActivismIcon />}
-            onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}
-            sx={{
-              bgcolor: theme.primary,
-              color: '#fff',
-              px: 4, py: 1.5,
-              borderRadius: 3,
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              boxShadow: `0 8px 24px ${theme.primary}60`,
-              '&:hover': { bgcolor: theme.primary, transform: 'translateY(-2px)' }
-            }}
-          >
-            Make a Donation
-          </Button>
-        </Box>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<VolunteerActivismIcon />}
+                    onClick={() => { setDonateTab('Money'); setOpenDonate(true); setPrefillItem(null); }}
+                    sx={{
+                      bgcolor: theme.primary,
+                      color: '#fff',
+                      px: 4, py: 2,
+                      borderRadius: 3,
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      boxShadow: `0 8px 30px ${theme.primary}50`,
+                      '&:hover': { bgcolor: theme.primary, transform: 'translateY(-3px)' }
+                    }}
+                  >
+                    Donate Money
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={() => { setDonateTab('Item'); setOpenDonate(true); setPrefillItem(null); }}
+                    sx={{
+                      borderColor: theme.primary,
+                      color: theme.primary,
+                      px: 4, py: 2,
+                      borderRadius: 3,
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      '&:hover': { bgcolor: theme.primary + '10', transform: 'translateY(-3px)' }
+                    }}
+                  >
+                    Donate Items
+                  </Button>
+                </Box>
+              </motion.div>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 5 }}>
+              {/* LEADERBOARD PREVIEW / PODIUM */}
+              <Box sx={{
+                p: 3,
+                borderRadius: 5,
+                bgcolor: theme.card + '80',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.borderColor}`,
+                boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+              }}>
+                <Typography variant="subtitle1" fontWeight="800" sx={{ mb: 2, textAlign: 'center', color: theme.text }}>
+                  🌟 Top Heroes This Month
+                </Typography>
+                <Podium winners={topDonors.slice(0, 3)} themeProp={theme} />
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
       </Box>
 
       {/* DASHBOARD CONTENT */}
@@ -256,7 +306,7 @@ const DonationPage = () => {
 
           {/* NEARBY REQUESTS SECTION (NEW) */}
           {nearbyRequests.length > 0 && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.primary}50`, p: 2 }}>
                 <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <VolunteerActivismIcon sx={{ color: theme.primary }} />
@@ -264,7 +314,7 @@ const DonationPage = () => {
                 </Box>
                 <Grid container spacing={2}>
                   {nearbyRequests.map(req => (
-                    <Grid item xs={12} md={4} key={req._id}>
+                    <Grid size={{ xs: 12, md: 4 }} key={req._id}>
                       <Box sx={{ p: 2, borderRadius: 2, bgcolor: theme.bg, border: `1px solid ${theme.borderColor}` }}>
                         <Typography variant="subtitle1" fontWeight="bold">{req.organizationId?.name}</Typography>
                         <Typography variant="caption" color={theme.textSec}>{req.organizationId?.address}</Typography>
@@ -292,7 +342,7 @@ const DonationPage = () => {
           )}
 
           {/* STATS ROW */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <StatCard
               themeProp={theme}
               title="Total Impact"
@@ -313,8 +363,49 @@ const DonationPage = () => {
             />
           </Grid>
 
+          {/* DIRECT IMPACT STORIES (Visual "Wow" factor) */}
+          <Grid size={{ xs: 12 }}>
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Heart color={theme.danger} size={24} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.text }}>Your Support in Action</Typography>
+            </Box>
+            <Grid container spacing={3}>
+              {[
+                { img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop", title: "Education Grant", loc: "Kenya" },
+                { img: "https://www.unicef.org/india/sites/unicef.org.india/files/styles/hero_extended/public/UNI535228.webp?itok=7QvT5lOC", title: "Clean Water", loc: "India" },
+                { img: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=600&auto=format&fit=crop", title: "Medical Relief", loc: "Syria" }
+              ].map((item, i) => (
+                <Grid size={{ xs: 12, md: 4 }} key={i}>
+                  <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
+                    <Card sx={{
+                      height: 180,
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      border: `1px solid ${theme.borderColor}`,
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                    }}>
+                      <Box component="img" src={item.img} sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+                      <Box sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        p: 2,
+                        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))'
+                      }}>
+                        <Typography variant="caption" sx={{ color: theme.primary, fontWeight: 900, textTransform: 'uppercase' }}>{item.loc}</Typography>
+                        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 800 }}>{item.title}</Typography>
+                      </Box>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+
           {/* MAIN UTILITY SECTION: URGENT NEEDS */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card sx={{ bgcolor: theme.card, borderRadius: 4, border: `1px solid ${theme.borderColor}`, overflow: 'hidden', height: '100%' }}>
               <Box sx={{ p: 3, borderBottom: `1px solid ${theme.borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
@@ -332,7 +423,7 @@ const DonationPage = () => {
                 {neededItems.length > 0 ? (
                   <Grid container spacing={2}>
                     {neededItems.slice(0, 4).map((item) => (
-                      <Grid item xs={12} sm={6} key={item._id}>
+                      <Grid size={{ xs: 12, sm: 6 }} key={item._id}>
                         <Box sx={{
                           p: 2, borderRadius: 3,
                           bgcolor: `${theme.bg}80`,

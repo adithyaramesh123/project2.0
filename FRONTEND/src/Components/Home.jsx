@@ -10,6 +10,7 @@ import {
   Paper,
   Chip,
   IconButton,
+  useTheme,
 } from "@mui/material";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
@@ -115,6 +116,8 @@ const StatItem = memo(({ label, value, icon: Icon }) => (
 ));
 
 export default function Home() {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const containerRef = useRef(null);
 
   const scrollToSection = (id) => {
@@ -135,7 +138,7 @@ export default function Home() {
       {/* Hero Section */}
       <Container maxWidth="lg" sx={{ pt: 20, pb: 12, position: 'relative', zIndex: 1 }}>
         <Grid container spacing={4} alignItems="center">
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -220,7 +223,7 @@ export default function Home() {
             </motion.div>
           </Grid>
 
-          <Grid item xs={12} md={5}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <Box sx={{ position: 'relative' }}>
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -280,10 +283,10 @@ export default function Home() {
       <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', bgcolor: 'background.paper' }}>
         <Container maxWidth="lg" sx={{ py: 6 }}>
           <Grid container spacing={4} justifyContent="center">
-            <Grid item xs={6} md={3}><StatItem label="Lives Impacted" value="12k+" icon={Heart} /></Grid>
-            <Grid item xs={6} md={3}><StatItem label="Volunteers" value="250+" icon={Users} /></Grid>
-            <Grid item xs={6} md={3}><StatItem label="Communities" value="95" icon={Globe} /></Grid>
-            <Grid item xs={6} md={3}><StatItem label="Projects" value="40+" icon={Zap} /></Grid>
+            <Grid size={{ xs: 6, md: 3 }}><StatItem label="Lives Impacted" value="12k+" icon={Heart} /></Grid>
+            <Grid size={{ xs: 6, md: 3 }}><StatItem label="Volunteers" value="250+" icon={Users} /></Grid>
+            <Grid size={{ xs: 6, md: 3 }}><StatItem label="Communities" value="95" icon={Globe} /></Grid>
+            <Grid size={{ xs: 6, md: 3 }}><StatItem label="Projects" value="40+" icon={Zap} /></Grid>
           </Grid>
         </Container>
       </Box>
@@ -296,7 +299,7 @@ export default function Home() {
         </Box>
 
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FeatureCard
               icon={Droplet}
               title="Clean Water"
@@ -304,7 +307,7 @@ export default function Home() {
               delay={0}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FeatureCard
               icon={BookOpen}
               title="Education"
@@ -312,7 +315,7 @@ export default function Home() {
               delay={0.2}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FeatureCard
               icon={ShieldCheck}
               title="Healthcare"
@@ -336,39 +339,50 @@ export default function Home() {
           <Grid container spacing={4}>
             {[
               { img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1740&auto=format&fit=crop", title: "The Gift of Education", loc: "Kenya" },
-              { img: "https://images.unsplash.com/photo-1542601906990-b4d3fb7d5fa5?q=80&w=1626&auto=format&fit=crop", title: "Clean Water Project", loc: "India" },
+              { img: "https://www.unicef.org/india/sites/unicef.org.india/files/styles/hero_extended/public/UNI535228.webp?itok=7QvT5lOC", title: "Clean Water Project", loc: "India" },
               { img: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=1740&auto=format&fit=crop", title: "Medical Relief", loc: "Syria" }
             ].map((item, i) => (
-              <Grid item xs={12} md={4} key={i}>
+              <Grid size={{ xs: 12, md: 4 }} key={i}>
                 <motion.div
                   whileHover={{ y: -10 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  style={{ height: '100%' }}
                 >
-                  <Box sx={{
-                    position: 'relative',
-                    height: '320px',
-                    borderRadius: '24px',
+                  <Paper elevation={4} sx={{
+                    borderRadius: 4,
                     overflow: 'hidden',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                    cursor: 'pointer',
-                    group: 'hover'
+                    bgcolor: isDarkMode ? '#1a1a1a' : '#fff',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
                   }}>
-                    <Box component="img" src={item.img} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <Box sx={{ height: 240, overflow: 'hidden' }}>
+                      <Box
+                        component="img"
+                        src={item.img}
+                        alt={item.title}
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease', '&:hover': { transform: 'scale(1.1)' } }}
+                      />
+                    </Box>
                     <Box sx={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                      p: 4,
-                      pt: 10
+                      flexGrow: 1,
+                      p: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      bgcolor: 'background.paper'
                     }}>
-                      <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700 }}>{item.loc}</Typography>
+                      <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>{item.loc}</Typography>
                       <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 800 }}>{item.title}</Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.primary', mt: 1, gap: 1, opacity: 0.8 }}>
                         <Typography variant="body2">Read Story</Typography>
                         <ArrowUpRight size={16} />
                       </Box>
                     </Box>
-                  </Box>
+                  </Paper>
                 </motion.div>
               </Grid>
             ))}

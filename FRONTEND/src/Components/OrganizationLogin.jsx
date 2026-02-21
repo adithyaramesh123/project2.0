@@ -1,34 +1,41 @@
 import React, { useState, useRef } from 'react';
-import { Box, Button, TextField, Typography, Alert, Avatar, InputAdornment, IconButton, Card, CardContent, CardMedia, Grid, useTheme } from '@mui/material';
+import {
+    Box,
+    Button,
+    TextField,
+    Typography,
+    Alert,
+    Avatar,
+    InputAdornment,
+    IconButton,
+    Card,
+    CardContent,
+    CardMedia,
+    Grid,
+    useTheme,
+    Container,
+    Paper,
+    Divider,
+} from '@mui/material';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from "framer-motion";
+import { Globe, ShieldCheck } from "lucide-react";
 
 // Icons
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import BusinessIcon from '@mui/icons-material/Business';
 
-// Theme-aware page background
-const BackgroundStyle = (theme) => ({
-    background: theme.palette.mode === 'dark' 
-        ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 40%, #1e1e1e 70%, #121212 100%)'
-        : 'linear-gradient(135deg, #eaf6ff 0%, #dff3ff 40%, #d3ecff 70%, #c8e6ff 100%)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px 0',
-    fontFamily: "'Poppins', sans-serif",
-});
-
-const OrganizationLogin = () => { 
-    const theme = useTheme();
+const OrganizationLogin = () => {
+    const muiTheme = useTheme();
+    const isDarkMode = muiTheme.palette.mode === 'dark';
     const [input, setInput] = useState({ contactEmail: '', password: '' });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
@@ -46,15 +53,13 @@ const OrganizationLogin = () => {
         });
     };
 
-    // Refs and key handler for Enter navigation
     const contactEmailRef = useRef(null);
     const passwordRef = useRef(null);
     const handleKeyDown = (e, next) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (next === 'submit') {
-                onSubmit();
-            } else {
+            if (next === 'submit') onSubmit();
+            else {
                 const map = { contactEmail: contactEmailRef, password: passwordRef };
                 map[next]?.current?.focus?.();
             }
@@ -71,6 +76,8 @@ const OrganizationLogin = () => {
 
     const onSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
+        if (!input.contactEmail || !input.password) return;
+        setLoading(true);
         setError('');
         try {
             const res = await axios.post(`${baseurl}/api/organizations/login`, input);
@@ -79,226 +86,209 @@ const OrganizationLogin = () => {
                 localStorage.setItem('orgId', org._id);
                 localStorage.setItem('orgName', org.name || 'Organization');
                 localStorage.setItem('orgEmail', org.contactEmail || '');
-                // Optionally store org token or role
                 sessionStorage.setItem('role', 'organization');
                 window.dispatchEvent(new Event('roleChanged'));
                 navigate('/admin/org');
             }
         } catch (err) {
             console.error('Org login failed', err);
-            setError(err?.response?.data?.error || 'Login failed');
+            setError(err?.response?.data?.error || 'Login failed. Please verify your credentials.');
+        } finally {
+            setLoading(false);
         }
-    }; 
+    };
+
+    const glassInputSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+            bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+            '&:hover': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+        }
+    };
 
     return (
-        <>
-            <Box sx={BackgroundStyle(theme)}>
-                <Box
-                    sx={{
-                        width: { xs: '94%', sm: 720, md: 900 },
-                        maxWidth: 1100,
-                        padding: { xs: '28px', sm: '48px' },
-                        background: 'background.paper',
-                        borderRadius: '16px',
-                        boxShadow: theme.palette.mode === 'dark' 
-                            ? '0 14px 48px rgba(0,0,0,0.3)' 
-                            : '0 14px 48px rgba(16,81,139,0.08)',
-                        textAlign: 'center',
-                        border: theme.palette.mode === 'dark' 
-                            ? '1px solid rgba(255,255,255,0.1)' 
-                            : '1px solid rgba(30,120,200,0.08)',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, justifyContent: 'center' }}>
-                        <Avatar sx={{ width: 96, height: 96, bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#dff6ff', color: theme.palette.mode === 'dark' ? 'primary.contrastText' : '#08306b', fontSize: '2.2rem' }}>🏢</Avatar>
-                        <Box>
-                            <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: '1.6rem', sm: '1.9rem' } }}>Organization Portal</Typography>
-                            <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>Login to your organization account</Typography>
-                        </Box>
-                    </Box>
+        <Box sx={{ bgcolor: isDarkMode ? '#0a0a0a' : '#f0fdfa', minHeight: '100vh', overflowX: 'hidden' }}>
+            <Box sx={{
+                position: 'relative',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isDarkMode
+                    ? 'linear-gradient(135deg, #111 0%, #050505 100%)'
+                    : 'linear-gradient(135deg, #f0fdf4 0%, #e1f1ff 100%)',
+                px: 2,
+                py: 6
+            }}>
+                {/* Decorative Blobs */}
+                <Box sx={{
+                    position: 'absolute',
+                    top: '20%',
+                    left: '10%',
+                    width: '300px',
+                    height: '300px',
+                    background: 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0) 70%)',
+                    borderRadius: '50%',
+                    filter: 'blur(60px)',
+                    zIndex: 0
+                }} component={motion.div} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 10, repeat: Infinity }} />
 
-                    {error && <Alert severity="error" sx={{ mb: 2, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,235,238,0.2)' : "rgba(255,235,238,0.95)", color: theme.palette.mode === 'dark' ? '#ff6b6b' : "#6b0d0d" }}>{error}</Alert>}
-                    <form onSubmit={onSubmit}>
-                        <TextField
-                            fullWidth
-                            label="Contact Email"
-                            name="contactEmail"
-                            value={input.contactEmail}
-                            onChange={onChange}
-                            inputRef={contactEmailRef}
-                            onKeyDown={(e) => handleKeyDown(e, 'password')}
-                            error={!!errors.contactEmail}
-                            helperText={errors.contactEmail}
-                            InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: 'primary.main' }} /></InputAdornment>) }}
+                <Container maxWidth="sm" sx={{ zIndex: 1 }}>
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
+                        <Paper
+                            elevation={24}
                             sx={{
-                                mb: 2,
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "10px",
-                                    backgroundColor: "background.paper",
-                                    "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
-                                    "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
-                                    "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
-                                },
-                                "& .MuiInputLabel-root": { color: "text.secondary" },
-                                "& .MuiInputBase-input": { color: "text.primary" },
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            name="password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={input.password}
-                            onChange={onChange}
-                            inputRef={passwordRef}
-                            onKeyDown={(e) => handleKeyDown(e, 'submit')}
-                            error={!!errors.password}
-                            helperText={errors.password}
-                            InputProps={{
-                                startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: 'primary.main' }} /></InputAdornment>),
-                                endAdornment: (<InputAdornment position="end"><IconButton onClick={toggleShowPassword} edge="end" size="small" sx={{ color: 'primary.main' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)
-                            }}
-                            sx={{
-                                mb: 2,
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "10px",
-                                    backgroundColor: "background.paper",
-                                    "& fieldset": { borderColor: "rgba(30,120,200,0.06)" },
-                                    "&:hover fieldset": { borderColor: "rgba(30,120,200,0.12)" },
-                                    "&.Mui-focused fieldset": { borderColor: "rgba(30,120,200,0.2)" },
-                                },
-                                "& .MuiInputLabel-root": { color: "text.secondary" },
-                                "& .MuiInputBase-input": { color: "text.primary" },
-                            }}
-                        />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            disabled={!input.contactEmail || !input.password || Object.keys(errors).length > 0}
-                            sx={{
-                                mt: 2,
-                                background: 'primary.main',
-                                color: 'primary.contrastText',
-                                fontWeight: 800,
-                                padding: '14px',
-                                borderRadius: '12px',
-                                textTransform: 'none',
-                                fontSize: '18px',
-                                boxShadow: theme.palette.mode === 'dark' 
-                                    ? '0 10px 28px rgba(0,0,0,0.3)' 
-                                    : '0 10px 28px rgba(16,81,139,0.08)',
-                                '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.palette.mode === 'dark' ? '0 16px 36px rgba(0,0,0,0.4)' : '0 16px 36px rgba(16,81,139,0.1)' },
+                                p: { xs: 3, sm: 6 },
+                                borderRadius: 5,
+                                background: isDarkMode ? 'rgba(25, 25, 25, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+                                backdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: isDarkMode ? '0 40px 80px -12px rgba(0, 0, 0, 0.9)' : '0 40px 80px -12px rgba(16, 81, 139, 0.12)',
                             }}
                         >
-                            Login
-                        </Button>
-                    </form>
-                </Box>
+                            <Box sx={{ textAlign: 'center', mb: 4 }}>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: 'primary.main',
+                                        mx: 'auto',
+                                        mb: 2,
+                                        width: 80,
+                                        height: 80,
+                                        boxShadow: '0 0 30px rgba(13,148,136,0.4)',
+                                        fontSize: '2.5rem'
+                                    }}
+                                >
+                                    🏢
+                                </Avatar>
+                                <Typography variant="h4" fontWeight="900" sx={{ color: 'text.primary', mb: 1, letterSpacing: '-1px' }}>
+                                    Organization Portal
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                                    Access your dashboard to manage impact
+                                </Typography>
+                            </Box>
+
+                            {error && (
+                                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+                                    {error}
+                                </Alert>
+                            )}
+
+                            <form onSubmit={onSubmit}>
+                                <Grid container spacing={2.5}>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            label="Contact Email"
+                                            name="contactEmail"
+                                            value={input.contactEmail}
+                                            onChange={onChange}
+                                            inputRef={contactEmailRef}
+                                            onKeyDown={(e) => handleKeyDown(e, 'password')}
+                                            error={!!errors.contactEmail}
+                                            helperText={errors.contactEmail}
+                                            InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: 'primary.main', opacity: 0.7 }} /></InputAdornment> }}
+                                            sx={glassInputSx}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            label="Password"
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={input.password}
+                                            onChange={onChange}
+                                            inputRef={passwordRef}
+                                            onKeyDown={(e) => handleKeyDown(e, 'submit')}
+                                            error={!!errors.password}
+                                            helperText={errors.password}
+                                            InputProps={{
+                                                startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: 'primary.main', opacity: 0.7 }} /></InputAdornment>,
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton onClick={toggleShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                            sx={glassInputSx}
+                                        />
+                                    </Grid>
+                                </Grid>
+
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                    disabled={loading || !input.contactEmail || !input.password}
+                                    endIcon={loading ? null : <ChevronRightIcon />}
+                                    sx={{
+                                        mt: 5,
+                                        py: 2,
+                                        borderRadius: 3,
+                                        fontWeight: '800',
+                                        fontSize: '1.1rem',
+                                        textTransform: 'none',
+                                        boxShadow: '0 10px 20px -5px rgba(13,148,136,0.5)',
+                                        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 15px 30px -5px rgba(13,148,136,0.6)' },
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    {loading ? 'Authenticating...' : 'Sign In to Portal'}
+                                </Button>
+                            </form>
+
+                            <Box sx={{ mt: 4, textAlign: 'center' }}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    Need assistance? <Typography component={Link} to="/contact" sx={{ color: 'primary.main', fontWeight: 800, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Contact Support</Typography>
+                                </Typography>
+                            </Box>
+                        </Paper>
+                    </motion.div>
+                </Container>
             </Box>
 
-            {/* NGO Organization Cards Section */}
-            <Box sx={{ py: 8, px: { xs: '20px', sm: '40px' }, background: 'linear-gradient(180deg, #f5f9fc 0%, #ffffff 100%)' }}>
-                <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', textAlign: 'center', mb: 6, fontSize: { xs: '1.8rem', sm: '2.2rem' } }}>
-                        Why Partner With Us?
-                    </Typography>
-                    <Grid container spacing={3}>
-                        {/* Card 1 */}
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
-                            <Card sx={{
-                                height: '100%',
-                                borderRadius: '12px',
-                                boxShadow: '0 8px 24px rgba(16,81,139,0.1)',
-                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: '0 16px 40px rgba(16,81,139,0.15)'
-                                }
-                            }}>
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop"
-                                    alt="Community Support"
-                                    sx={{ objectFit: 'cover' }}
-                                />
-                                <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
-                                        Community Impact
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                                        Connect with communities that need your support. Make a tangible difference in lives.
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+            {/* Partner Info Section */}
+            <Box sx={{ py: 12, px: 2, bgcolor: isDarkMode ? '#0d0d0d' : '#fff' }}>
+                <Container maxWidth="lg">
+                    <Box sx={{ textAlign: 'center', mb: 8 }}>
+                        <Typography variant="h3" fontWeight="900" gutterBottom sx={{ background: 'linear-gradient(45deg, #0d9488, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            Partner With Us
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 700, mx: 'auto' }}>
+                            Join a network of organizations dedicated to creating sustainable change across the globe.
+                        </Typography>
+                    </Box>
 
-                        {/* Card 2 */}
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
-                            <Card sx={{
-                                height: '100%',
-                                borderRadius: '12px',
-                                boxShadow: '0 8px 24px rgba(16,81,139,0.1)',
-                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: '0 16px 40px rgba(16,81,139,0.15)'
-                                }
-                            }}>
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image="https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop"
-                                    alt="Transparency"
-                                    sx={{ objectFit: 'cover' }}
-                                />
-                                <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
-                                        Full Transparency
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                                        Track donations and requests in real-time. Know exactly where your contributions go.
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-
-                        {/* Card 3 */}
-                        <Grid item xs={{ span: 12 }} sm={{ span: 6 }} md={{ span: 4 }}>
-                            <Card sx={{
-                                height: '100%',
-                                borderRadius: '12px',
-                                boxShadow: '0 8px 24px rgba(16,81,139,0.1)',
-                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: '0 16px 40px rgba(16,81,139,0.15)'
-                                }
-                            }}>
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop"
-                                    alt="Easy Management"
-                                    sx={{ objectFit: 'cover' }}
-                                />
-                                <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
-                                        Easy Management
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                                        Simple dashboard to manage requests and coordinate donations. Built for efficiency.
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                    <Grid container spacing={4}>
+                        {[
+                            { title: "Global Impact", text: "Reach communities that need your specific expertise and support.", icon: <Globe size={32} />, img: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=400&fit=crop" },
+                            { title: "Transparency", text: "Tools built for real-time tracking and reporting of donor contributions.", icon: <ShieldCheck size={32} />, img: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" },
+                            { title: "Management", text: "Efficient dashboard to manage requests and coordinate with volunteers.", icon: <BusinessIcon sx={{ fontSize: 32 }} />, img: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop" }
+                        ].map((item, idx) => (
+                            <Grid item xs={12} md={4} key={idx}>
+                                <motion.div whileHover={{ y: -10 }} transition={{ type: "spring", stiffness: 300 }}>
+                                    <Card sx={{
+                                        height: '100%',
+                                        borderRadius: 4,
+                                        bgcolor: isDarkMode ? 'rgba(30, 30, 30, 0.4)' : '#f8fafc',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.1)',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <CardMedia component="img" height="180" image={item.img} sx={{ filter: isDarkMode ? 'brightness(0.7)' : 'none' }} />
+                                        <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                                            <Typography variant="h6" fontWeight="800" gutterBottom>{item.title}</Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>{item.text}</Typography>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            </Grid>
+                        ))}
                     </Grid>
-                </Box>
+                </Container>
             </Box>
-        </>
+        </Box>
     );
 };
 

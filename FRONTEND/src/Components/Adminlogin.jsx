@@ -8,261 +8,258 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-} from '@mui/material'
-import axios from 'axios'
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-//import Divider from '@mui/material/Divider';
-//import GitHubIcon from '@mui/icons-material/GitHub';
+  Avatar,
+  InputAdornment,
+  IconButton,
+  useTheme,
+  Paper,
+  Container,
+} from '@mui/material';
+import axios from 'axios';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from "framer-motion";
+
+// Icons
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import ShieldIcon from '@mui/icons-material/Shield';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+
 const Adminlogin = () => {
-  const [input, setInput] = useState({ ename: '', password: '' })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const baseurl = import.meta.env.VITE_API_BASE_URL || ''
-  const navigate = useNavigate()
+  const muiTheme = useTheme();
+  const isDarkMode = muiTheme.palette.mode === 'dark';
+  const [input, setInput] = useState({ ename: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const baseurl = import.meta.env.VITE_API_BASE_URL || '';
+  const navigate = useNavigate();
 
   // forgot password dialog state
-  const [forgotOpen, setForgotOpen] = useState(false)
-  const [forgotEmail, setForgotEmail] = useState('')
-  const [forgotLoading, setForgotLoading] = useState(false)
-  const [forgotMessage, setForgotMessage] = useState('')
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState('');
 
   const inpuHandler = (e) => {
-    const { name, value } = e.target
-    setInput((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setInput((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const canSubmit = input.ename.trim() !== '' && input.password.trim() !== ''
+  const canSubmit = input.ename.trim() !== '' && input.password.trim() !== '';
 
   const addhandler = async (e) => {
-    if (e && e.preventDefault) e.preventDefault()
+    if (e && e.preventDefault) e.preventDefault();
     if (!canSubmit) {
-      setError('Please enter both email and password')
-      return
+      setError('Please enter both email and password');
+      return;
     }
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     try {
-      const res = await axios.post(`${baseurl}/api/Adminlogin`, input)
-      const data = res?.data
+      const res = await axios.post(`${baseurl}/api/Adminlogin`, input);
+      const data = res?.data;
       if (res?.status === 200 && data) {
         if (data.user && data.user.role) {
-          sessionStorage.setItem('role', data.user.role)
-          window.dispatchEvent(new Event('roleChanged'))
+          sessionStorage.setItem('role', data.user.role);
+          window.dispatchEvent(new Event('roleChanged'));
         }
-        if (data.user?.role === 'admin') navigate('/admin')
-        else navigate('/user')
+        if (data.user?.role === 'admin') navigate('/admin');
+        else navigate('/user');
       } else {
-        setError(data?.message || 'Login failed')
+        setError(data?.message || 'Login failed');
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || 'An error occurred')
-      console.error(err)
+      setError(err?.response?.data?.message || err.message || 'An error occurred');
+      console.error(err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const openForgot = () => {
-    setForgotMessage('')
-    setForgotEmail('')
-    setForgotOpen(true)
-  }
+    setForgotMessage('');
+    setForgotEmail('');
+    setForgotOpen(true);
+  };
 
-  const closeForgot = () => setForgotOpen(false)
+  const closeForgot = () => setForgotOpen(false);
 
   const submitForgot = async () => {
     if (!forgotEmail.trim()) {
-      setForgotMessage('Please enter your email')
-      return
+      setForgotMessage('Please enter your email');
+      return;
     }
-    setForgotLoading(true)
-    setForgotMessage('')
+    setForgotLoading(true);
+    setForgotMessage('');
     try {
-      // Assumption: backend endpoint is /api/forgot-password and expects { ename: email }
-      const payload = { ename: forgotEmail }
-      const res = await axios.post(`${baseurl}/api/forgot-password`, payload)
-      setForgotMessage(res?.data?.message || 'If that email exists, instructions were sent.')
+      const payload = { ename: forgotEmail };
+      const res = await axios.post(`${baseurl}/api/forgot-password`, payload);
+      setForgotMessage(res?.data?.message || 'If that email exists, instructions were sent.');
     } catch (err) {
-      setForgotMessage(err?.response?.data?.message || 'Failed to send reset email')
-      console.error(err)
+      setForgotMessage(err?.response?.data?.message || 'Failed to send reset email');
+      console.error(err);
     } finally {
-      setForgotLoading(false)
+      setForgotLoading(false);
     }
-  }
-    
+  };
+
+  const glassInputSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+      '&:hover': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+    }
+  };
+
   return (
-
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+    <Box
+      sx={{
+        bgcolor: isDarkMode ? '#0a0a0a' : '#f8fafc',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8f2ff 0%, #ffffff 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: isDarkMode
+          ? 'radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%)'
+          : 'radial-gradient(circle at 50% 50%, #f0f9ff 0%, #e0f2fe 100%)',
+        px: 2
       }}
     >
-      <Box
-        sx={{
-          width: 420,
-          padding: '36px 32px',
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 8px 30px rgba(14, 30, 37, 0.06)',
-          textAlign: 'center',
-          border: '1px solid rgba(66,153,225,0.12)'
-        }}
-      >
-    <Typography 
-      variant="h4" 
-      gutterBottom 
-      sx={{ 
-        fontFamily:"italian", 
-        fontWeight: 600, 
-        color: '#2d3748',
-        letterSpacing: '-0.5px',
-        marginBottom: '24px'
-      }}
-    >
-      "We Rise By Lifting Others"
-    </Typography>
-    
-      <Typography
-        variant="subtitle1"
-        gutterBottom
-        sx={{
-          color: '#3269a8',
-          marginBottom: 3,
-          fontSize: '15px',
-        }}
-      >
-       Please Login to Admin Dasboard
-      </Typography>
-
-      <form onSubmit={addhandler} noValidate>
-        <TextField
-          fullWidth
-          label="Email address"
-          variant="outlined"
-          margin="normal"
-          name="ename"
-          value={input.ename}
-          onChange={inpuHandler}
-          required
-          autoComplete="email"
-          sx={{
-            marginBottom: '12px',
-            '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-          }}
-        />
-
-        <TextField
-          fullWidth
-          label="Password"
-          variant="outlined"
-          margin="normal"
-          name="password"
-          type="password"
-          value={input.password}
-          onChange={inpuHandler}
-          required
-          autoComplete="current-password"
-          sx={{
-            marginBottom: '8px',
-            '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-          }}
-        />
-
-        {error && (
-          <Typography variant="body2" sx={{ color: 'error.main', mb: 1 }} role="alert">
-            {error}
-          </Typography>
-        )}
-
-        <div style={{ textAlign: 'right', marginBottom: '18px' }}>
-          <Button
-            onClick={openForgot}
-            size="small"
-            sx={{ textTransform: 'none', color: '#2b6cb0' }}
+      <Container maxWidth="xs">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Paper
+            elevation={24}
+            sx={{
+              p: 5,
+              borderRadius: 4,
+              background: isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: isDarkMode ? '0 25px 50px -12px rgba(0, 0, 0, 0.8)' : '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+              textAlign: 'center'
+            }}
           >
-            Forgot password?
-          </Button>
-        </div>
+            <Avatar
+              sx={{
+                bgcolor: 'secondary.main',
+                mx: 'auto',
+                mb: 3,
+                width: 64,
+                height: 64,
+                boxShadow: '0 0 20px rgba(245,158,11,0.3)'
+              }}
+            >
+              <ShieldIcon sx={{ fontSize: 32 }} />
+            </Avatar>
 
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          disabled={loading}
-          sx={{
-            backgroundColor: '#1976d2',
-            marginTop: 1,
-            fontWeight: '600',
-            padding: '12px',
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontSize: '15px',
-            boxShadow: 'none',
-            '&:hover': { backgroundColor: '#1669bb', boxShadow: 'none' },
-          }}
-        >
-          {loading ? <CircularProgress size={20} color="inherit" /> : 'Continue'}
-        </Button>
-      </form>
+            <Typography variant="h4" fontWeight="800" sx={{ mb: 1, letterSpacing: '-1px' }}>
+              Admin Console
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4 }}>
+              "We Rise By Lifting Others"
+            </Typography>
 
-    
-      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: 18 }}>
-        <Button
-          variant="outlined"
-          sx={{ borderRadius: '8px', padding: '8px 16px', borderColor: '#e6eefb', color: '#1976d2' }}
-        >
-          
-        </Button>
-        <Button
-          variant="outlined"
-          sx={{ borderRadius: '8px', padding: '8px 16px', borderColor: '#e6eefb', color: '#1976d2' }}
-        >
-          
-        </Button>
-      </div>
-  </Box>
-      
+            <form onSubmit={addhandler}>
+              <TextField
+                fullWidth
+                label="Admin Email"
+                name="ename"
+                value={input.ename}
+                onChange={inpuHandler}
+                autoComplete="email"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start"><EmailIcon color="primary" sx={{ opacity: 0.7 }} /></InputAdornment>,
+                }}
+                sx={{ ...glassInputSx, mb: 2.5 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type="password"
+                value={input.password}
+                onChange={inpuHandler}
+                autoComplete="current-password"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start"><LockIcon color="primary" sx={{ opacity: 0.7 }} /></InputAdornment>,
+                }}
+                sx={{ ...glassInputSx, mb: 1.5 }}
+              />
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                <Button onClick={openForgot} size="small" sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}>
+                  Forgot Access?
+                </Button>
+              </Box>
+
+              {error && (
+                <Typography variant="caption" sx={{ color: 'error.main', mb: 2, display: 'block' }}>
+                  {error}
+                </Typography>
+              )}
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading || !canSubmit}
+                endIcon={loading ? null : <ChevronRightIcon />}
+                sx={{
+                  py: 1.8,
+                  borderRadius: 3,
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  textTransform: 'none',
+                  boxShadow: '0 10px 15px -3px rgba(13,148,136,0.3)',
+                }}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Enter Dashboard'}
+              </Button>
+            </form>
+
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                © 2025 Changing Lives Admin
+              </Typography>
+            </Box>
+          </Paper>
+        </motion.div>
+      </Container>
+
       {/* Forgot password dialog */}
-      <Dialog open={forgotOpen} onClose={closeForgot} fullWidth maxWidth="xs">
-        <DialogTitle>Reset password</DialogTitle>
+      <Dialog open={forgotOpen} onClose={closeForgot} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Reset Admin Access</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1, color: '#475569' }}>
-            Enter your email and we'll send instructions to reset your password.
+          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            Verification required. Enter your admin email to receive instructions.
           </Typography>
           <TextField
             autoFocus
             margin="dense"
-            label="Email address"
+            label="Verified Email"
             type="email"
             fullWidth
             value={forgotEmail}
             onChange={(e) => setForgotEmail(e.target.value)}
+            sx={glassInputSx}
           />
           {forgotMessage && (
-            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+            <Typography variant="body2" sx={{ mt: 2, color: 'primary.main', fontWeight: 600 }}>
               {forgotMessage}
             </Typography>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeForgot} disabled={forgotLoading} sx={{ textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={submitForgot}
-            disabled={forgotLoading}
-            sx={{ textTransform: 'none', color: '#1976d2' }}
-          >
-            {forgotLoading ? <CircularProgress size={18} /> : 'Send'}
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeForgot} color="inherit">Cancel</Button>
+          <Button onClick={submitForgot} variant="contained" disabled={forgotLoading}>
+            {forgotLoading ? <CircularProgress size={20} /> : 'Send Reset Link'}
           </Button>
         </DialogActions>
       </Dialog>
-</div>
-  )
-}
- export default Adminlogin
+    </Box>
+  );
+};
+
+export default Adminlogin;
